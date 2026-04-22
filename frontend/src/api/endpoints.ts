@@ -29,6 +29,16 @@ export const getCommunityStats = async () => {
   return response.data;
 };
 
+export const compareCommunityAlgorithmsDirect = async () => {
+  const response = await apiClient.get('/communities/compare');
+  return response.data;
+};
+
+export const getBestCommunities = async () => {
+  const response = await apiClient.get('/communities/best');
+  return response.data;
+};
+
 // Users
 export const getTopInfluential = async (metric: string = 'pagerank', limit: number = 10): Promise<{ users: InfluentialUser[] }> => {
   const response = await apiClient.get('/users/top-influential', {
@@ -57,9 +67,9 @@ export const getRecommendations = async (userId: string, algorithm: string = 'ad
   return response.data;
 };
 
-export const explainRecommendation = async (source: string, target: string): Promise<ExplanationData> => {
-  const response = await apiClient.get('/recommendations/explain', {
-    params: { source, target }
+export const explainRecommendation = async (userId: string, targetId: string): Promise<ExplanationData> => {
+  const response = await apiClient.get(`/recommendations/${userId}/explain`, {
+    params: { target: targetId }
   });
   return response.data;
 };

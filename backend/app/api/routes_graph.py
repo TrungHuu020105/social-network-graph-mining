@@ -58,7 +58,7 @@ def _build_cytoscape_data(graph, communities, nodes_data) -> Dict[str, Any]:
 
 
 @router.get("/graph")
-async def get_graph_data(community_alg: str = "louvain"):
+async def get_graph_data(community_alg: str = "best"):
     """Lấy dữ liệu graph để visualize"""
     
     graph_builder = get_graph_builder()
@@ -66,14 +66,16 @@ async def get_graph_data(community_alg: str = "louvain"):
     nodes_data = graph_builder.get_nodes_data()
     
     # Lấy communities
-    if community_alg == "louvain":
+    if community_alg == "best":
+        communities, _, _ = CommunityDetectionService.get_best_communities(graph)
+    elif community_alg == "louvain":
         communities, _, _ = CommunityDetectionService.louvain(graph)
     elif community_alg == "label_propagation":
         communities, _, _ = CommunityDetectionService.label_propagation(graph)
     elif community_alg == "girvan_newman":
         communities, _, _ = CommunityDetectionService.girvan_newman(graph)
     else:
-        communities, _, _ = CommunityDetectionService.louvain(graph)
+        communities, _, _ = CommunityDetectionService.get_best_communities(graph)
     
     cytoscape_data = _build_cytoscape_data(graph, communities, nodes_data)
     

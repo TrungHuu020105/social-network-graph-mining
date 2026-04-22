@@ -167,3 +167,79 @@ class CommunityDetectionService:
             color_idx = i % len(CommunityDetectionService.COLORS)
             colors[i] = CommunityDetectionService.COLORS[color_idx]
         return colors
+    
+    @staticmethod
+    def compare_all_algorithms(graph: nx.Graph) -> Dict:
+        """
+        So sánh cả 3 thuật toán
+        
+        Returns:
+            {
+                'louvain': {'num_communities': int, 'modularity': float, 'execution_time': float},
+                'label_propagation': {...},
+                'girvan_newman': {...},
+                'best_algorithm': 'louvain' | 'label_propagation' | 'girvan_newman'
+            }
+        """
+        results = {}
+        best_modularity = -1
+        best_algorithm = None
+        
+        # Louvain
+        communities_louvain, modularity_louvain, time_louvain = CommunityDetectionService.louvain(graph)
+        results['louvain'] = {
+            'num_communities': len(set(communities_louvain.values())),
+            'modularity': round(modularity_louvain, 4),
+            'execution_time': round(time_louvain, 4),
+            'communities': communities_louvain
+        }
+        if modularity_louvain > best_modularity:
+            best_modularity = modularity_louvain
+            best_algorithm = 'louvain'
+        
+        # Label Propagation
+        communities_lp, modularity_lp, time_lp = CommunityDetectionService.label_propagation(graph)
+        results['label_propagation'] = {
+            'num_communities': len(set(communities_lp.values())),
+            'modularity': round(modularity_lp, 4),
+            'execution_time': round(time_lp, 4),
+            'communities': communities_lp
+        }
+        if modularity_lp > best_modularity:
+            best_modularity = modularity_lp
+            best_algorithm = 'label_propagation'
+        
+        # Girvan-Newman
+        communities_gn, modularity_gn, time_gn = CommunityDetectionService.girvan_newman(graph)
+        results['girvan_newman'] = {
+            'num_communities': len(set(communities_gn.values())),
+            'modularity': round(modularity_gn, 4),
+            'execution_time': round(time_gn, 4),
+            'communities': communities_gn
+        }
+        if modularity_gn > best_modularity:
+            best_modularity = modularity_gn
+            best_algorithm = 'girvan_newman'
+        
+        results['best_algorithm'] = best_algorithm
+        results['best_modularity'] = round(best_modularity, 4)
+        
+        return results
+    
+    @staticmethod
+    def get_best_communities(graph: nx.Graph) -> Tuple[Dict[str, int], float, str]:
+        """
+        Lấy kết quả cộng đồng từ thuật toán tốt nhất
+        
+        Returns:
+            Tuple(communities_dict, modularity, algorithm_name)
+        """
+        comparison = CommunityDetectionService.compare_all_algorithms(graph)
+        best_algo = comparison['best_algorithm']
+        
+        if best_algo == 'louvain':
+            return comparison['louvain']['communities'], comparison['louvain']['modularity'], 'louvain'
+        elif best_algo == 'label_propagation':
+            return comparison['label_propagation']['communities'], comparison['label_propagation']['modularity'], 'label_propagation'
+        else:  # girvan_newman
+            return comparison['girvan_newman']['communities'], comparison['girvan_newman']['modularity'], 'girvan_newman'

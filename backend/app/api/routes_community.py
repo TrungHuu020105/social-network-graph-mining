@@ -69,3 +69,68 @@ async def get_community_stats():
         'statistics': stats,
         'modularity': round(modularity, 4),
     }
+
+
+@router.get("/communities/compare")
+async def compare_communities():
+    """So sánh cả 3 thuật toán community detection"""
+    
+    graph_builder = get_graph_builder()
+    graph = graph_builder.get_graph()
+    
+    comparison = CommunityDetectionService.compare_all_algorithms(graph)
+    
+    # Loại bỏ communities dict để response nhẹ hơn
+    result = {
+        'louvain': {
+            'num_communities': comparison['louvain']['num_communities'],
+            'modularity': comparison['louvain']['modularity'],
+            'execution_time': comparison['louvain']['execution_time'],
+        },
+        'label_propagation': {
+            'num_communities': comparison['label_propagation']['num_communities'],
+            'modularity': comparison['label_propagation']['modularity'],
+            'execution_time': comparison['label_propagation']['execution_time'],
+        },
+        'girvan_newman': {
+            'num_communities': comparison['girvan_newman']['num_communities'],
+            'modularity': comparison['girvan_newman']['modularity'],
+            'execution_time': comparison['girvan_newman']['execution_time'],
+        },
+        'best_algorithm': comparison['best_algorithm'],
+        'best_modularity': comparison['best_modularity'],
+    }
+    
+    return result
+
+
+@router.get("/communities/best")
+async def get_best_communities():
+    """Lấy kết quả communities từ thuật toán tốt nhất"""
+    
+    graph_builder = get_graph_builder()
+    graph = graph_builder.get_graph()
+    
+    communities, modularity, algorithm_name = CommunityDetectionService.get_best_communities(graph)
+    stats = CommunityDetectionService.get_community_stats(graph, communities)
+    
+    # Tạo Community objects
+    community_list = []
+    for stat in stats:
+        community_list.append(
+            Community(
+                id=stat['id'],
+                size=stat['size'],
+                members=stat['members'],
+                modularity=stat.get('modularity'),
+                density=stat['density'],
+            )
+        )
+    
+    return {
+        'algorithm': algorithm_name,
+        'num_communities': len(stats),
+        'communities': [c.model_dump() for c in community_list],
+        'modularity': modularity,
+        'statistics': stats,
+    }

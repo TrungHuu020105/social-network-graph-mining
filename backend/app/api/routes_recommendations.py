@@ -40,9 +40,9 @@ async def get_recommendations(
     }
 
 
-@router.get("/recommendations/explain")
+@router.get("/recommendations/{user_id}/explain")
 async def explain_recommendation(
-    source: str = Query(...),
+    user_id: str,
     target: str = Query(...),
 ):
     """Giải thích vì sao một gợi ý được tạo ra"""
@@ -51,14 +51,14 @@ async def explain_recommendation(
     graph = graph_builder.get_graph()
     nodes_data = graph_builder.get_nodes_data()
     
-    if source not in graph.nodes() or target not in graph.nodes():
+    if user_id not in graph.nodes() or target not in graph.nodes():
         raise HTTPException(status_code=404, detail="User not found")
     
     # Lấy communities
     communities, _, _ = CommunityDetectionService.louvain(graph)
     
     explanation = ExplanationService.explain_recommendation(
-        graph, nodes_data, source, target, communities
+        graph, nodes_data, user_id, target, communities
     )
     
     return explanation
