@@ -23,10 +23,19 @@ async def get_dataset_info():
     
     stats = get_graph_stats(graph)
     
+    # Build node_list with ID and name
+    node_list = []
+    for node_id in graph.nodes():
+        node_info = nodes_data.get(node_id, {})
+        node_list.append({
+            'id': str(node_id),
+            'name': node_info.get('name', str(node_id))
+        })
+    
     return {
         'num_nodes': stats['num_nodes'],
         'num_edges': stats['num_edges'],
-        'node_list': list(graph.nodes()),
+        'node_list': node_list,
         'density': stats['density'],
         'avg_degree': stats['avg_degree'],
     }

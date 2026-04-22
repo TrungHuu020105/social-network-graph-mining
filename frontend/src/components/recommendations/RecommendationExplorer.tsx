@@ -6,7 +6,7 @@ import { ChevronRight, Share2 } from 'lucide-react';
 import { RecommendationGraph } from './RecommendationGraph';
 
 export const RecommendationExplorer: React.FC = () => {
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [algorithm, setAlgorithm] = useState('adamic_adar');
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
@@ -29,7 +29,7 @@ export const RecommendationExplorer: React.FC = () => {
         const data = await getDatasetInfo();
         setUsers(data.node_list);
         if (data.node_list.length > 0) {
-          setSelectedUser(data.node_list[0]);
+          setSelectedUser(data.node_list[0].id);
         }
       } catch (error) {
         console.error('Error loading users:', error);
@@ -109,7 +109,7 @@ export const RecommendationExplorer: React.FC = () => {
             className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500"
           >
             {users.map(u => (
-              <option key={u} value={u}>{u}</option>
+              <option key={u.id} value={u.id}>{u.id}({u.name})</option>
             ))}
           </select>
         </div>

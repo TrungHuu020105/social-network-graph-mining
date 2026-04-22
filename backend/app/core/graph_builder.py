@@ -14,25 +14,26 @@ class GraphBuilder:
         self.graph: nx.Graph = nx.Graph()
         self.nodes_data: Dict = {}
         self.edges_data: List = []
+        self.cache_data: Dict = {}  # Cache cho community detection
         
     def load_from_csv(self, nodes_file: Path, edges_file: Path) -> nx.Graph:
         """Load graph từ file CSV"""
         try:
-            # Load nodes
+            # Load nodes - dùng itertuples thay vì iterrows (nhanh 10x)
             nodes_df = pd.read_csv(nodes_file)
-            for _, row in nodes_df.iterrows():
-                node_id = str(row['id'])
+            for row in nodes_df.itertuples(index=False):
+                node_id = str(row.id)
                 self.graph.add_node(node_id)
                 self.nodes_data[node_id] = {
-                    'name': row['name'],
-                    'username': row['username'],
+                    'name': row.name,
+                    'username': row.username,
                 }
             
-            # Load edges
+            # Load edges - dùng itertuples
             edges_df = pd.read_csv(edges_file)
-            for _, row in edges_df.iterrows():
-                source = str(row['source'])
-                target = str(row['target'])
+            for row in edges_df.itertuples(index=False):
+                source = str(row.source)
+                target = str(row.target)
                 if source in self.graph.nodes and target in self.graph.nodes:
                     self.graph.add_edge(source, target)
                     self.edges_data.append((source, target))
@@ -56,8 +57,21 @@ class GraphBuilder:
         """Lấy danh sách edges"""
         return self.edges_data
     
+    def get_cached(self, key: str):
+        """Lấy dữ liệu từ cache"""
+        return self.cache_data.get(key)
+    
+    def set_cached(self, key: str, value):
+        """Lưu dữ liệu vào cache"""
+        self.cache_data[key] = value
+    
+    def clear_cache(self):
+        """Xóa toàn bộ cache"""
+        self.cache_data = {}
+    
     def reset(self):
         """Reset graph"""
         self.graph = nx.Graph()
         self.nodes_data = {}
         self.edges_data = []
+        self.clear_cache()

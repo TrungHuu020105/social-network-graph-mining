@@ -7,11 +7,13 @@ import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
 interface GraphPanelProps {
   communityAlgorithm?: string;
+  selectedNodeId?: string | null;
   onNodeClick?: (nodeId: string) => void;
 }
 
 export const GraphPanel: React.FC<GraphPanelProps> = ({
   communityAlgorithm = 'louvain',
+  selectedNodeId = null,
   onNodeClick,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,7 +28,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
     const nodeId = node.id();
     
     // Clear previous selection
-    cy.elements().removeClass('selected neighbor highlighted');
+    cy.elements().removeClass('selected neighbor highlighted hidden');
     
     // Select current node
     node.addClass('selected');
@@ -39,6 +41,22 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
     const neighbors = node.neighborhood('node');
     neighbors.addClass('neighbor');
     
+    // Hide all other nodes and edges
+    const allNodes = cy.nodes();
+    const allEdges = cy.edges();
+    
+    allNodes.forEach((n: any) => {
+      if (n.id() !== nodeId && !neighbors.contains(n)) {
+        n.addClass('hidden');
+      }
+    });
+    
+    allEdges.forEach((e: any) => {
+      if (!connectedEdges.contains(e)) {
+        e.addClass('hidden');
+      }
+    });
+    
     // Callback
     onNodeClick?.(nodeId);
   }, [onNodeClick]);
@@ -49,6 +67,13 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
       isMountedRef.current = false;
     };
   }, []);
+
+  // Reset graph when selectedNodeId changes to null
+  useEffect(() => {
+    if (!selectedNodeId && cyRef.current) {
+      cyRef.current.elements().removeClass('selected neighbor highlighted hidden');
+    }
+  }, [selectedNodeId]);
 
   useEffect(() => {
     let mounted = true;
@@ -146,6 +171,12 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                 'height': 'mapData(degree, 0, 50, 25, 45)',
                 'z-index': 50,
               }
+            },
+            {
+              selector: '.hidden',
+              style: {
+                'display': 'none'
+              }
             }
           ],
           layout: {
@@ -161,7 +192,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
         // Click background to deselect
         cy.on('tap', (evt: any) => {
           if (evt.target === cy) {
-            cy.elements().removeClass('selected neighbor highlighted');
+            cy.elements().removeClass('selected neighbor highlighted hidden');
           }
         });
 

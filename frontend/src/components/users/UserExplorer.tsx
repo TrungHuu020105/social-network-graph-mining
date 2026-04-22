@@ -9,7 +9,7 @@ interface UserExplorerProps {
 }
 
 export const UserExplorer: React.FC<UserExplorerProps> = ({ initialUserId }) => {
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(initialUserId || null);
   const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,7 +47,9 @@ export const UserExplorer: React.FC<UserExplorerProps> = ({ initialUserId }) => 
     }
   }, [initialUserId]);
 
-  const filteredUsers = users.filter(u => u.includes(searchQuery));
+  const filteredUsers = users.filter(u => 
+    u.id.includes(searchQuery) || u.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Compact view when used as embedded component
   if (initialUserId && userDetail) {
@@ -126,17 +128,17 @@ export const UserExplorer: React.FC<UserExplorerProps> = ({ initialUserId }) => 
 
         {/* User List */}
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          {filteredUsers.map(userId => (
+          {filteredUsers.map(user => (
             <button
-              key={userId}
-              onClick={() => handleUserSelect(userId)}
+              key={user.id}
+              onClick={() => handleUserSelect(user.id)}
               className={`w-full text-left px-3 py-2 rounded transition-colors ${
-                selectedUser === userId
+                selectedUser === user.id
                   ? 'bg-blue-600 text-white'
                   : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
               }`}
             >
-              {userId}
+              {user.id}({user.name})
             </button>
           ))}
         </div>

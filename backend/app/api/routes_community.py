@@ -73,11 +73,17 @@ async def get_community_stats():
 
 @router.get("/communities/compare")
 async def compare_communities():
-    """So sánh cả 3 thuật toán community detection"""
+    """So sánh cả 3 thuật toán community detection (có cache)"""
     
     graph_builder = get_graph_builder()
     graph = graph_builder.get_graph()
     
+    # Check cache trước
+    cached_result = graph_builder.get_cached('community_comparison')
+    if cached_result is not None:
+        return cached_result
+    
+    # Nếu không có cache, tính toán
     comparison = CommunityDetectionService.compare_all_algorithms(graph)
     
     # Loại bỏ communities dict để response nhẹ hơn
@@ -100,6 +106,9 @@ async def compare_communities():
         'best_algorithm': comparison['best_algorithm'],
         'best_modularity': comparison['best_modularity'],
     }
+    
+    # Lưu vào cache
+    graph_builder.set_cached('community_comparison', result)
     
     return result
 
