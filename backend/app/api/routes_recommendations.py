@@ -46,6 +46,7 @@ async def get_recommendations(
 async def explain_recommendation(
     user_id: str,
     target: str = Query(...),
+    algorithm: str = Query("adamic_adar"),
 ):
     """Giải thích vì sao một gợi ý được tạo ra"""
     
@@ -60,7 +61,12 @@ async def explain_recommendation(
     communities, _, _ = CommunityDetectionService.louvain(graph)
     
     explanation = ExplanationService.explain_recommendation(
-        graph, nodes_data, user_id, target, communities
+        graph=graph,
+        nodes_data=nodes_data,
+        source_id=user_id,
+        target_id=target,
+        algorithm=algorithm,
+        communities=communities,
     )
     
     return explanation

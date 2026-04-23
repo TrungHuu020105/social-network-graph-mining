@@ -15,7 +15,12 @@ export const RecommendationExplorer: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [explanationLoading, setExplanationLoading] = useState(false);
 
-  const algorithms = [{ value: 'adamic_adar', label: 'Adamic-Adar (Baseline)' }];
+  const algorithms = [
+    { value: 'adamic_adar', label: 'Adamic-Adar (AA)' },
+    { value: 'resource_allocation', label: 'Resource Allocation (RA)' },
+    { value: 'preferential_attachment', label: 'Preferential Attachment (PA)' },
+    { value: 'gcn', label: 'GCN Link Prediction' },
+  ];
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -66,7 +71,7 @@ export const RecommendationExplorer: React.FC = () => {
     const loadExplanation = async () => {
       setExplanationLoading(true);
       try {
-        const exp = await explainRecommendation(selectedUser, selectedRecommendation.target_id);
+        const exp = await explainRecommendation(selectedUser, selectedRecommendation.target_id, algorithm);
         setExplanation(exp);
       } catch (error) {
         console.error('Error loading explanation:', error);
@@ -76,7 +81,7 @@ export const RecommendationExplorer: React.FC = () => {
       }
     };
     loadExplanation();
-  }, [selectedRecommendation, selectedUser]);
+  }, [selectedRecommendation, selectedUser, algorithm]);
 
   const filteredUsers = users.filter((u) => {
     const keyword = userSearch.trim().toLowerCase();
@@ -208,7 +213,13 @@ export const RecommendationExplorer: React.FC = () => {
                     <span className="font-bold text-white">{explanation.jaccard_coefficient.toFixed(4)}</span>
                   </div>
                   <div className="flex items-center justify-between rounded bg-slate-700/50 p-3">
-                    <span className="text-slate-400">Adamic-Adar</span>
+                    <span className="text-slate-400">{explanation.ranking_label ?? 'Diem Thuat Toan'}</span>
+                    <span className="font-bold text-white">
+                      {(explanation.ranking_score ?? explanation.adamic_adar_score).toFixed(4)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded bg-slate-700/50 p-3">
+                    <span className="text-slate-400">Adamic-Adar (tham khao)</span>
                     <span className="font-bold text-white">{explanation.adamic_adar_score.toFixed(4)}</span>
                   </div>
                   <div className="flex items-center justify-between rounded bg-slate-700/50 p-3">
@@ -243,3 +254,4 @@ export const RecommendationExplorer: React.FC = () => {
     </div>
   );
 };
+

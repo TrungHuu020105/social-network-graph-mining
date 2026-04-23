@@ -123,7 +123,8 @@ class GraphBuilder:
     @staticmethod
     def _resolve_label_columns(columns) -> Tuple[str, str]:
         node_candidates = ["new_id", "node_id", "id"]
-        label_candidates = ["mature", "label", "target", "y"]
+        # Prefer "partner" for GCN prediction on PTBR dataset, fallback to other common labels.
+        label_candidates = ["partner", "mature", "label", "target", "y"]
 
         node_col = next((c for c in node_candidates if c in columns), None)
         label_col = next((c for c in label_candidates if c in columns), None)

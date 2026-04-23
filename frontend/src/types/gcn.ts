@@ -1,8 +1,17 @@
+export interface GCNClassMetric {
+  label: number;
+  precision: number;
+  recall: number;
+  f1_score: number;
+  support: number;
+}
+
 export interface GCNTrainResponse {
   accuracy: number;
   loss: number;
   train_size: number;
   test_size: number;
+  class_metrics?: GCNClassMetric[];
 }
 
 export interface GCNPrediction {

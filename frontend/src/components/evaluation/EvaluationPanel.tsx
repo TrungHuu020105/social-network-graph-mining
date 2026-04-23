@@ -11,7 +11,12 @@ export const EvaluationPanel: React.FC = () => {
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const algorithms = [{ value: 'adamic_adar', label: 'Adamic-Adar (Baseline)' }];
+  const algorithms = [
+    { value: 'adamic_adar', label: 'Adamic-Adar (AA)' },
+    { value: 'resource_allocation', label: 'Resource Allocation (RA)' },
+    { value: 'preferential_attachment', label: 'Preferential Attachment (PA)' },
+    { value: 'gcn', label: 'GCN Link Prediction' },
+  ];
 
   const handleEvaluate = async () => {
     setLoading(true);
@@ -29,6 +34,16 @@ export const EvaluationPanel: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const chartResults = (results || []).map((result: any) => {
+    const key = String(result.algorithm || '').toLowerCase();
+    let short = result.algorithm_label ?? result.algorithm;
+    if (key === 'adamic_adar') short = 'AA';
+    else if (key === 'resource_allocation') short = 'RA';
+    else if (key === 'preferential_attachment') short = 'PA';
+    else if (key === 'gcn') short = 'GCN';
+    return { ...result, algorithm_short: short };
+  });
 
   return (
     <div className="p-6 space-y-6">
@@ -119,7 +134,7 @@ export const EvaluationPanel: React.FC = () => {
                     key={idx}
                     className={idx % 2 === 0 ? 'bg-slate-700/50' : ''}
                   >
-                    <td className="px-4 py-3 text-white font-medium">{result.algorithm}</td>
+                    <td className="px-4 py-3 text-white font-medium">{result.algorithm_label ?? result.algorithm}</td>
                     <td className="px-4 py-3 text-right text-blue-300">{result.precision_at_k.toFixed(4)}</td>
                     <td className="px-4 py-3 text-right text-green-300">{result.hit_rate.toFixed(4)}</td>
                     <td className="px-4 py-3 text-right text-yellow-300">{result.num_edges_hidden}</td>
@@ -135,9 +150,9 @@ export const EvaluationPanel: React.FC = () => {
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
               <h3 className="text-lg font-bold text-white mb-4">Precision@K</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={results}>
+                <BarChart data={chartResults}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                  <XAxis dataKey="algorithm" stroke="#999" />
+                  <XAxis dataKey="algorithm_short" stroke="#999" interval={0} />
                   <YAxis stroke="#999" />
                   <Tooltip />
                   <Bar dataKey="precision_at_k" fill="#3b82f6" />
@@ -148,9 +163,9 @@ export const EvaluationPanel: React.FC = () => {
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
               <h3 className="text-lg font-bold text-white mb-4">Hit Rate</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={results}>
+                <BarChart data={chartResults}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                  <XAxis dataKey="algorithm" stroke="#999" />
+                  <XAxis dataKey="algorithm_short" stroke="#999" interval={0} />
                   <YAxis stroke="#999" />
                   <Tooltip />
                   <Bar dataKey="hit_rate" fill="#10b981" />
@@ -163,3 +178,4 @@ export const EvaluationPanel: React.FC = () => {
     </div>
   );
 };
+

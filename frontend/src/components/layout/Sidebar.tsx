@@ -7,7 +7,6 @@ import {
   Menu,
   Network,
   Share2,
-  TrendingUp,
   Users,
   X,
 } from 'lucide-react';
@@ -33,7 +32,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isO
     { id: 'users', label: 'Nguoi Dung', icon: <Users size={20} /> },
     { id: 'recommendations', label: 'Goi Y', icon: <Share2 size={20} /> },
     { id: 'comparison', label: 'So Sanh', icon: <GitCompare size={20} /> },
-    { id: 'evaluation', label: 'Danh Gia', icon: <TrendingUp size={20} /> },
     { id: 'dataset', label: 'Du Lieu', icon: <Database size={20} /> },
     { id: 'gcn', label: 'GCN Prediction', icon: <BrainCircuit size={20} /> },
   ];

@@ -7,6 +7,7 @@ import {
   UserDetail,
   InfluentialUser,
   ExplanationData,
+  DatasetInfo,
   UserNeighborsResponse,
 } from '../types';
 
@@ -75,9 +76,13 @@ export const getRecommendations = async (userId: string, algorithm: string = 'ad
   return response.data;
 };
 
-export const explainRecommendation = async (userId: string, targetId: string): Promise<ExplanationData> => {
+export const explainRecommendation = async (
+  userId: string,
+  targetId: string,
+  algorithm: string = 'adamic_adar',
+): Promise<ExplanationData> => {
   const response = await apiClient.get(`/recommendations/${userId}/explain`, {
-    params: { target: targetId }
+    params: { target: targetId, algorithm }
   });
   return response.data;
 };
@@ -111,7 +116,7 @@ export const evaluateMultipleAlgorithms = async (topK: number = 10, hiddenEdgeRa
 };
 
 // Dataset
-export const getDatasetInfo = async () => {
+export const getDatasetInfo = async (): Promise<DatasetInfo> => {
   const response = await apiClient.get('/dataset/info');
   return response.data;
 };
@@ -127,6 +132,18 @@ export const uploadDataset = async (nodesFile: File, edgesFile: File) => {
   formData.append('edges_file', edgesFile);
 
   const response = await apiClient.post('/dataset/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+};
+
+export const uploadFullMLDataset = async (edgesFile: File, featuresFile: File, targetFile: File) => {
+  const formData = new FormData();
+  formData.append('edges_file', edgesFile);
+  formData.append('features_file', featuresFile);
+  formData.append('target_file', targetFile);
+
+  const response = await apiClient.post('/dataset/upload-ml', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
   return response.data;

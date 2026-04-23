@@ -3,7 +3,6 @@ import { CommunityAnalysis } from './components/community/CommunityAnalysis';
 import { ComparisonPanel } from './components/comparison/ComparisonPanel';
 import { DashboardOverview } from './components/dashboard/DashboardOverview';
 import { DatasetManager } from './components/dataset/DatasetManager';
-import { EvaluationPanel } from './components/evaluation/EvaluationPanel';
 import { Sidebar } from './components/layout/Sidebar';
 import { Topbar } from './components/layout/Topbar';
 import { RecommendationExplorer } from './components/recommendations/RecommendationExplorer';
@@ -16,7 +15,6 @@ export type PageType =
   | 'users'
   | 'recommendations'
   | 'comparison'
-  | 'evaluation'
   | 'dataset'
   | 'gcn';
 
@@ -46,11 +44,6 @@ const pageConfig: Record<PageType, { title: string; description: string; path: s
     description: 'So sanh hieu suat cac thuat toan',
     path: '/comparison',
   },
-  evaluation: {
-    title: 'Danh Gia Ket Qua',
-    description: 'Danh gia chat luong recommendations',
-    path: '/evaluation',
-  },
   dataset: {
     title: 'Quan Ly Du Lieu',
     description: 'Upload va quan ly dataset',
@@ -69,7 +62,7 @@ const pathToPage: Record<string, PageType> = {
   '/users': 'users',
   '/recommendations': 'recommendations',
   '/comparison': 'comparison',
-  '/evaluation': 'evaluation',
+  '/evaluation': 'comparison',
   '/dataset': 'dataset',
   '/gcn': 'gcn',
 };
@@ -112,8 +105,6 @@ function App() {
         return <RecommendationExplorer />;
       case 'comparison':
         return <ComparisonPanel />;
-      case 'evaluation':
-        return <EvaluationPanel />;
       case 'dataset':
         return <DatasetManager />;
       case 'gcn':
@@ -133,7 +124,7 @@ function App() {
       />
 
       <div className="flex-1 overflow-auto">
-        <Topbar title={config.title} description={config.description} />
+        {currentPage !== 'gcn' && <Topbar title={config.title} description={config.description} />}
         <div className="bg-slate-900">{renderPage()}</div>
       </div>
     </div>

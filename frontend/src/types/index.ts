@@ -113,6 +113,9 @@ export interface ExplanationData {
   source_name: string;
   target_id: string;
   target_name: string;
+  algorithm: string;
+  ranking_label?: string;
+  ranking_score?: number;
   jaccard_coefficient: number;
   adamic_adar_score: number;
   common_neighbors: string[];
@@ -121,4 +124,20 @@ export interface ExplanationData {
   shortest_path_distance: number;
   shortest_path: string[];
   explanation_text: string;
+}
+
+export interface DatasetInfo {
+  num_nodes: number;
+  num_edges: number;
+  node_list: Array<{ id: string; name: string }>;
+  density: number;
+  avg_degree: number;
+  dataset_mode?: 'twitch_ml' | 'simple_graph' | string;
+  gcn_ready?: boolean;
+  label_name?: string;
+  feature_dim?: number;
+  labeled_nodes?: number;
+  unlabeled_nodes?: number;
+  label_distribution?: Record<string, number>;
+  files?: Record<string, { path: string; exists: boolean }>;
 }

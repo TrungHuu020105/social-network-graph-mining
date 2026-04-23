@@ -10,7 +10,6 @@ from fastapi import APIRouter, Query
 
 from app.core.data_storage import get_graph_builder
 from app.services.community_service import CommunityDetectionService
-from app.services.gcn_service import get_gcn_service
 
 router = APIRouter(prefix="/api", tags=["graph"])
 
@@ -69,7 +68,12 @@ def _build_graph_payload(
     selected_nodes: Set[str],
     max_nodes: int,
 ) -> Dict[str, Any]:
-    predictions = get_gcn_service().get_prediction_snapshot()
+    try:
+        from app.services.gcn_service import get_gcn_service
+
+        predictions = get_gcn_service().get_prediction_snapshot()
+    except Exception:
+        predictions = {}
     community_ids = sorted({communities.get(node_id, 0) for node_id in selected_nodes})
 
     nodes: List[Dict[str, Any]] = []

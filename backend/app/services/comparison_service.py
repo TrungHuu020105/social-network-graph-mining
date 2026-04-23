@@ -66,7 +66,7 @@ class ComparisonService:
             }
         
         results = []
-        algorithms = ['adamic_adar']
+        algorithms = RecommendationService.get_supported_algorithms()
         
         for algo in algorithms:
             start_time = time.time()
@@ -79,7 +79,9 @@ class ComparisonService:
             avg_score = sum(r['score'] for r in recs) / len(recs) if recs else 0
             
             results.append({
-                'algorithm_name': algo,
+                'algorithm': algo,
+                'algorithm_name': RecommendationService.get_algorithm_label(algo),
+                'algorithm_label': RecommendationService.get_algorithm_label(algo),
                 'num_recommendations': len(recs),
                 'average_score': round(avg_score, 4),
                 'execution_time': round(elapsed_time, 4),

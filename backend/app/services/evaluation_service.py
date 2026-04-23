@@ -35,10 +35,12 @@ class EvaluationService:
         """
         
         start_time = time.time()
+        normalized_algorithm = RecommendationService.normalize_algorithm(algorithm)
         
         if graph.number_of_nodes() == 0:
             return {
-                'algorithm': algorithm,
+                'algorithm': normalized_algorithm,
+                'algorithm_label': RecommendationService.get_algorithm_label(normalized_algorithm),
                 'top_k': top_k,
                 'hidden_edge_ratio': hidden_edge_ratio,
                 'precision_at_k': 0,
@@ -63,7 +65,7 @@ class EvaluationService:
         # Để test chính xác, ta check cho từng hidden edge xem nó có được gợi ý không
         for source, target in hidden_edges:
             recs, _ = RecommendationService.get_recommendations(
-                test_graph, nodes_data, source, algorithm=algorithm, top_k=top_k
+                test_graph, nodes_data, source, algorithm=normalized_algorithm, top_k=top_k
             )
             
             # Check xem target có trong gợi ý không
@@ -81,7 +83,8 @@ class EvaluationService:
         elapsed_time = time.time() - start_time
         
         return {
-            'algorithm': algorithm,
+            'algorithm': normalized_algorithm,
+            'algorithm_label': RecommendationService.get_algorithm_label(normalized_algorithm),
             'top_k': top_k,
             'hidden_edge_ratio': hidden_edge_ratio,
             'precision_at_k': round(precision_at_k, 4),
@@ -101,7 +104,7 @@ class EvaluationService:
     ) -> Dict:
         """Đánh giá nhiều algorithms"""
         
-        algorithms = ['adamic_adar']
+        algorithms = RecommendationService.get_supported_algorithms()
         
         results = []
         for algo in algorithms:

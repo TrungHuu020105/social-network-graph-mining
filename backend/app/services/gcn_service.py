@@ -85,6 +85,7 @@ class TrainResult:
     loss: float
     train_size: int
     test_size: int
+    class_metrics: List[Dict[str, float | int]]
 
 
 class GCNService:
@@ -135,6 +136,7 @@ class GCNService:
             last_loss = float(loss.item())
 
         model.eval()
+        class_metrics: List[Dict[str, float | int]] = []
         with torch.no_grad():
             logits, embeddings = model(x, adj_norm)
             probabilities = F.softmax(logits, dim=1)
@@ -143,6 +145,7 @@ class GCNService:
             test_predictions = predictions[test_idx]
             test_labels = y[test_idx]
             accuracy = float((test_predictions == test_labels).float().mean().item()) if test_idx.numel() > 0 else 0.0
+            class_metrics = self._compute_class_metrics(test_labels, test_predictions, num_classes=2)
 
         self.model = model
         self.train_result = TrainResult(
@@ -150,6 +153,7 @@ class GCNService:
             loss=last_loss,
             train_size=int(train_idx.numel()),
             test_size=int(test_idx.numel()),
+            class_metrics=class_metrics,
         )
         self._cached_node_order = index_to_node
 
@@ -183,6 +187,44 @@ class GCNService:
         self.embedding_2d_map = embedding_2d_map
 
         return self.train_result
+
+    @staticmethod
+    def _compute_class_metrics(
+        true_labels: torch.Tensor,
+        predicted_labels: torch.Tensor,
+        num_classes: int = 2,
+    ) -> List[Dict[str, float | int]]:
+        if true_labels.numel() == 0:
+            return [
+                {"label": class_id, "precision": 0.0, "recall": 0.0, "f1_score": 0.0, "support": 0}
+                for class_id in range(num_classes)
+            ]
+
+        y_true = true_labels.cpu().numpy()
+        y_pred = predicted_labels.cpu().numpy()
+        metrics: List[Dict[str, float | int]] = []
+
+        for class_id in range(num_classes):
+            tp = int(np.sum((y_true == class_id) & (y_pred == class_id)))
+            fp = int(np.sum((y_true != class_id) & (y_pred == class_id)))
+            fn = int(np.sum((y_true == class_id) & (y_pred != class_id)))
+            support = int(np.sum(y_true == class_id))
+
+            precision = float(tp / (tp + fp)) if (tp + fp) > 0 else 0.0
+            recall = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
+            f1_score = float((2 * precision * recall) / (precision + recall)) if (precision + recall) > 0 else 0.0
+
+            metrics.append(
+                {
+                    "label": class_id,
+                    "precision": precision,
+                    "recall": recall,
+                    "f1_score": f1_score,
+                    "support": support,
+                }
+            )
+
+        return metrics
 
     def train_if_needed(self) -> TrainResult:
         if not self.is_trained():

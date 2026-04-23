@@ -8,6 +8,7 @@ interface GraphPanelProps {
   communityAlgorithm?: string;
   selectedNodeId?: string | null;
   onNodeClick?: (nodeId: string) => void;
+  colorMode?: 'community' | 'prediction';
 }
 
 type ScaleMetric = 'degree' | 'pagerank';
@@ -117,10 +118,40 @@ const stableEdgeHash = (source: string, target: string): number => {
   return hash % 100;
 };
 
+const buildPredictionExplanation = (node: GraphNodeData, detail: UserDetail | null): string => {
+  if (node.prediction == null) {
+    return 'Node nay chua co du doan tu mo hinh GCN.';
+  }
+
+  const classLabel = node.prediction === 1 ? 'lop Partner (1)' : 'lop Non-Partner (0)';
+  const probability = node.probability;
+  const neighborCount = detail?.neighbors.length;
+
+  if (probability == null) {
+    return `Mo hinh GCN xep node nay vao ${classLabel} dua tren ket hop dac trung node va thong tin lien ket trong do thi.`;
+  }
+
+  const confidencePct = (probability * 100).toFixed(2);
+  const confidenceText =
+    probability >= 0.85
+      ? 'do tin cay cao'
+      : probability >= 0.65
+        ? 'do tin cay trung binh'
+        : 'do tin cay thap, gan ranh gioi 2 lop';
+
+  const neighborhoodText =
+    typeof neighborCount === 'number'
+      ? ` Node nay co ${neighborCount} lien ket lan can, giup mo hinh tong hop boi canh xung quanh.`
+      : '';
+
+  return `Node duoc xep vao ${classLabel} vi xac suat du doan dat ${confidencePct}% (${confidenceText}). Mo hinh GCN dua vao cau truc ket noi va dac trung cua node de ra quyet dinh.${neighborhoodText}`;
+};
+
 export const GraphPanel: React.FC<GraphPanelProps> = ({
   communityAlgorithm = 'louvain',
   selectedNodeId = null,
   onNodeClick,
+  colorMode = 'community',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
@@ -150,6 +181,22 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
 
   const graphKey = `${communityAlgorithm}:${maxNodes}:${edgeMode}`;
   const communityOptions = useMemo(() => graphData?.meta.community_ids ?? [], [graphData]);
+  const filterOptions = useMemo(() => {
+    if (colorMode === 'prediction') {
+      return [
+        { value: 'all', label: 'All predictions' },
+        { value: '1', label: 'Prediction 1' },
+        { value: '0', label: 'Prediction 0' },
+      ];
+    }
+    return [
+      { value: 'all', label: 'All communities' },
+      ...communityOptions.map((communityId) => ({
+        value: String(communityId),
+        label: `Community ${communityId}`,
+      })),
+    ];
+  }, [colorMode, communityOptions]);
 
   const displayedGraph = useMemo(() => {
     if (!graphData) return null;
@@ -213,10 +260,19 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
 
   const graphElements = useMemo(() => {
     if (!displayedGraph) return [] as cytoscape.ElementDefinition[];
+    const resolveNodeColor = (node: GraphNodeData): string => {
+      if (colorMode === 'prediction') {
+        if (node.prediction === 1) return '#ef4444';
+        if (node.prediction === 0) return '#3b82f6';
+        return '#64748b';
+      }
+      return COMMUNITY_PALETTE[Math.abs(node.community) % COMMUNITY_PALETTE.length];
+    };
+
     const nodes: cytoscape.ElementDefinition[] = displayedGraph.nodes.map((node) => ({
       data: {
         ...node,
-        color: COMMUNITY_PALETTE[Math.abs(node.community) % COMMUNITY_PALETTE.length],
+        color: resolveNodeColor(node),
         displayLabel: '',
       },
     }));
@@ -229,7 +285,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
       },
     }));
     return [...nodes, ...edges];
-  }, [displayedGraph]);
+  }, [displayedGraph, colorMode]);
 
   const loadGraph = async (nodesLimit: number) => {
     setIsLoading(true);
@@ -355,11 +411,15 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
 
     const applyCommunityFilter = () => {
       cy.elements().removeClass('hidden-node');
-      const currentCommunity = selectedCommunityRef.current;
-      if (currentCommunity === 'all') return;
+      const currentFilter = selectedCommunityRef.current;
+      if (currentFilter === 'all') return;
 
       cy.nodes().forEach((node) => {
-        if (String(node.data('community')) !== currentCommunity) {
+        if (colorMode === 'prediction') {
+          if (String(node.data('prediction')) !== currentFilter) {
+            node.addClass('hidden-node');
+          }
+        } else if (String(node.data('community')) !== currentFilter) {
           node.addClass('hidden-node');
         }
       });
@@ -375,20 +435,27 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
       applyCommunityFilter();
 
       node.removeClass('hidden-node');
+      node.addClass('selected');
+      node.data('displayLabel', node.data('label'));
+
       const neighborNodes = node.neighborhood('node');
       const neighborEdges = node.connectedEdges();
-      neighborNodes.removeClass('hidden-node');
-      neighborEdges.removeClass('hidden-node');
 
-      node.addClass('selected');
-      neighborNodes.addClass('neighbor');
-      neighborEdges.addClass('active-edge');
-
-      node.data('displayLabel', node.data('label'));
-      if (showOnlyNeighborhoodRef.current) {
-        cy.elements().difference(node.union(neighborNodes).union(neighborEdges)).addClass('hidden-node');
+      if (colorMode === 'prediction') {
+        if (showOnlyNeighborhoodRef.current) {
+          cy.elements().difference(node).addClass('hidden-node');
+        }
       } else {
-        cy.elements().difference(node.union(neighborNodes).union(neighborEdges)).addClass('faded');
+        neighborNodes.removeClass('hidden-node');
+        neighborEdges.removeClass('hidden-node');
+        neighborNodes.addClass('neighbor');
+        neighborEdges.addClass('active-edge');
+
+        if (showOnlyNeighborhoodRef.current) {
+          cy.elements().difference(node.union(neighborNodes).union(neighborEdges)).addClass('hidden-node');
+        } else {
+          cy.elements().difference(node.union(neighborNodes).union(neighborEdges)).addClass('faded');
+        }
       }
 
       const payload = node.data() as GraphNodeData;
@@ -617,22 +684,23 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
           onChange={(e) => setSelectedCommunity(e.target.value)}
           className="rounded border border-slate-600 bg-slate-700 px-3 py-2 text-xs text-slate-100"
         >
-          <option value="all">All communities</option>
-          {communityOptions.map((communityId) => (
-            <option key={communityId} value={String(communityId)}>
-              Community {communityId}
+          {filterOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
 
-        <select
-          value={scaleMetric}
-          onChange={(e) => setScaleMetric(e.target.value as ScaleMetric)}
-          className="rounded border border-slate-600 bg-slate-700 px-3 py-2 text-xs text-slate-100"
-        >
-          <option value="degree">Scale by degree</option>
-          <option value="pagerank">Scale by pagerank</option>
-        </select>
+        {colorMode !== 'prediction' && (
+          <select
+            value={scaleMetric}
+            onChange={(e) => setScaleMetric(e.target.value as ScaleMetric)}
+            className="rounded border border-slate-600 bg-slate-700 px-3 py-2 text-xs text-slate-100"
+          >
+            <option value="degree">Scale by degree</option>
+            <option value="pagerank">Scale by pagerank</option>
+          </select>
+        )}
 
         <select
           value={maxNodes}
@@ -692,16 +760,33 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
           {selectedNode ? (
             <div className="space-y-2">
               <div><span className="text-slate-400">ID:</span> {selectedNode.id}</div>
-              <div><span className="text-slate-400">Community:</span> {selectedNode.community}</div>
-              <div><span className="text-slate-400">Degree:</span> {selectedNode.degree}</div>
-              <div><span className="text-slate-400">PageRank:</span> {selectedNode.pagerank.toFixed(6)}</div>
+              {colorMode !== 'prediction' && (
+                <>
+                  <div><span className="text-slate-400">Community:</span> {selectedNode.community}</div>
+                  <div><span className="text-slate-400">Degree:</span> {selectedNode.degree}</div>
+                  <div><span className="text-slate-400">PageRank:</span> {selectedNode.pagerank.toFixed(6)}</div>
+                </>
+              )}
+              {selectedNode.prediction != null && (
+                <div><span className="text-slate-400">Prediction:</span> {selectedNode.prediction}</div>
+              )}
+              {selectedNode.probability != null && (
+                <div><span className="text-slate-400">Probability:</span> {(selectedNode.probability * 100).toFixed(2)}%</div>
+              )}
               {nodeDetailLoading && <p className="text-xs text-slate-400">Dang tai thong tin...</p>}
               {!nodeDetailLoading && selectedNodeDetail && (
                 <>
                   <div><span className="text-slate-400">Name:</span> {selectedNodeDetail.name}</div>
                   <div><span className="text-slate-400">Username:</span> @{selectedNodeDetail.username}</div>
-                  <div><span className="text-slate-400">Hang xom:</span> {selectedNodeDetail.neighbors.length}</div>
                 </>
+              )}
+              {colorMode === 'prediction' && (
+                <div className="mt-2 rounded-md border border-slate-700 bg-slate-800/60 p-2 text-slate-200">
+                  <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-300">Giai thich</div>
+                  <div className="text-xs leading-relaxed text-slate-300">
+                    {buildPredictionExplanation(selectedNode, selectedNodeDetail)}
+                  </div>
+                </div>
               )}
             </div>
           ) : (
