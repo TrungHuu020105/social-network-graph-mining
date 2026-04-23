@@ -11,7 +11,6 @@ export const CommunityAnalysis: React.FC = () => {
   const algorithms = [
     { value: 'louvain', label: 'Louvain' },
     { value: 'label_propagation', label: 'Label Propagation' },
-    { value: 'girvan_newman', label: 'Girvan-Newman' },
   ];
 
   useEffect(() => {

@@ -1,5 +1,3 @@
-// types/index.ts
-
 export interface Node {
   id: string;
   name: string;
@@ -20,11 +18,36 @@ export interface CommunityInfo {
   density: number;
 }
 
+export interface GraphNodeData {
+  id: string;
+  label: string;
+  community: number;
+  degree: number;
+  pagerank: number;
+  prediction?: number | null;
+  probability?: number | null;
+}
+
+export interface GraphLinkData {
+  source: string;
+  target: string;
+}
+
+export interface GraphMeta {
+  num_nodes: number;
+  num_edges: number;
+  num_communities: number;
+  community_ids: number[];
+  total_nodes: number;
+  total_edges: number;
+  max_nodes: number;
+}
+
 export interface GraphData {
-  nodes: any[];
-  edges: any[];
-  communities: Record<string, number>;
-  community_colors: Record<number, string>;
+  nodes: GraphNodeData[];
+  links: GraphLinkData[];
+  edges?: GraphLinkData[];
+  meta: GraphMeta;
 }
 
 export interface OverviewStats {

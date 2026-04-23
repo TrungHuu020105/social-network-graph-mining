@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { getDatasetInfo, getUserDetail } from '../../api/endpoints';
 import { UserDetail } from '../../types';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface UserExplorerProps {
   initialUserId?: string;
@@ -52,9 +52,23 @@ export const UserExplorer: React.FC<UserExplorerProps> = ({ initialUserId }) => 
   );
 
   // Compact view when used as embedded component
-  if (initialUserId && userDetail) {
+  if (initialUserId) {
     return (
       <div className="space-y-3">
+        {loading && !userDetail && (
+          <div className="rounded-lg border border-slate-700 bg-slate-800 p-4 text-sm text-slate-300">
+            Dang tai thong tin node...
+          </div>
+        )}
+
+        {!loading && !userDetail && (
+          <div className="rounded-lg border border-slate-700 bg-slate-800 p-4 text-sm text-slate-300">
+            Khong tim thay thong tin node.
+          </div>
+        )}
+
+        {userDetail && (
+          <>
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-4 text-white">
           <h2 className="text-xl font-bold">{userDetail.name}</h2>
@@ -103,6 +117,8 @@ export const UserExplorer: React.FC<UserExplorerProps> = ({ initialUserId }) => 
               ))}
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     );

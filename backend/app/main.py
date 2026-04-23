@@ -20,6 +20,7 @@ from app.api import (
     routes_comparison,
     routes_evaluation,
     routes_dataset,
+    routes_gcn,
 )
 
 # Setup logging
@@ -54,6 +55,7 @@ app.include_router(routes_recommendations.router)
 app.include_router(routes_comparison.router)
 app.include_router(routes_evaluation.router)
 app.include_router(routes_dataset.router)
+app.include_router(routes_gcn.router)
 
 
 @app.get("/")

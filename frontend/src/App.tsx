@@ -1,51 +1,102 @@
-// App.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { CommunityAnalysis } from './components/community/CommunityAnalysis';
+import { ComparisonPanel } from './components/comparison/ComparisonPanel';
+import { DashboardOverview } from './components/dashboard/DashboardOverview';
+import { DatasetManager } from './components/dataset/DatasetManager';
+import { EvaluationPanel } from './components/evaluation/EvaluationPanel';
 import { Sidebar } from './components/layout/Sidebar';
 import { Topbar } from './components/layout/Topbar';
-import { DashboardOverview } from './components/dashboard/DashboardOverview';
-import { CommunityAnalysis } from './components/community/CommunityAnalysis';
-import { UserExplorer } from './components/users/UserExplorer';
 import { RecommendationExplorer } from './components/recommendations/RecommendationExplorer';
-import { ComparisonPanel } from './components/comparison/ComparisonPanel';
-import { EvaluationPanel } from './components/evaluation/EvaluationPanel';
-import { DatasetManager } from './components/dataset/DatasetManager';
+import { UserExplorer } from './components/users/UserExplorer';
+import { GCNPage } from './pages/GCNPage';
 
-type PageType = 'overview' | 'community' | 'users' | 'recommendations' | 'comparison' | 'evaluation' | 'dataset';
+export type PageType =
+  | 'overview'
+  | 'community'
+  | 'users'
+  | 'recommendations'
+  | 'comparison'
+  | 'evaluation'
+  | 'dataset'
+  | 'gcn';
 
-const pageConfig: Record<PageType, { title: string; description: string }> = {
+const pageConfig: Record<PageType, { title: string; description: string; path: string }> = {
   overview: {
-    title: 'Tổng Quan',
-    description: 'Thống kê tổng quát về mạng xã hội',
+    title: 'Tong Quan',
+    description: 'Thong ke tong quat ve mang xa hoi',
+    path: '/',
   },
   community: {
-    title: 'Phân Tích Cộng Đồng',
-    description: 'Phát hiện và phân tích các cộng đồng trong mạng',
+    title: 'Phan Tich Cong Dong',
+    description: 'Phat hien va phan tich cac cong dong trong mang',
+    path: '/community',
   },
   users: {
-    title: 'Khám Phá Người Dùng',
-    description: 'Xem thông tin chi tiết về người dùng',
+    title: 'Kham Pha Nguoi Dung',
+    description: 'Xem thong tin chi tiet ve nguoi dung',
+    path: '/users',
   },
   recommendations: {
-    title: 'Gợi Ý Kết Nối',
-    description: 'Gợi ý những kết nối tiềm năng',
+    title: 'Goi Y Ket Noi',
+    description: 'Goi y nhung ket noi tiem nang',
+    path: '/recommendations',
   },
   comparison: {
-    title: 'So Sánh Thuật Toán',
-    description: 'So sánh hiệu suất các thuật toán',
+    title: 'So Sanh Thuat Toan',
+    description: 'So sanh hieu suat cac thuat toan',
+    path: '/comparison',
   },
   evaluation: {
-    title: 'Đánh Giá Kết Quả',
-    description: 'Đánh giá chất lượng recommendations',
+    title: 'Danh Gia Ket Qua',
+    description: 'Danh gia chat luong recommendations',
+    path: '/evaluation',
   },
   dataset: {
-    title: 'Quản Lý Dữ Liệu',
-    description: 'Upload và quản lý dataset',
+    title: 'Quan Ly Du Lieu',
+    description: 'Upload va quan ly dataset',
+    path: '/dataset',
+  },
+  gcn: {
+    title: 'GCN Prediction',
+    description: 'Du doan node classification bang Graph Neural Network',
+    path: '/gcn',
   },
 };
 
+const pathToPage: Record<string, PageType> = {
+  '/': 'overview',
+  '/community': 'community',
+  '/users': 'users',
+  '/recommendations': 'recommendations',
+  '/comparison': 'comparison',
+  '/evaluation': 'evaluation',
+  '/dataset': 'dataset',
+  '/gcn': 'gcn',
+};
+
+function resolvePageFromPath(pathname: string): PageType {
+  return pathToPage[pathname] ?? 'overview';
+}
+
 function App() {
-  const [currentPage, setCurrentPage] = useState<PageType>('overview');
+  const [currentPage, setCurrentPage] = useState<PageType>(() => resolvePageFromPath(window.location.pathname));
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPage(resolvePageFromPath(window.location.pathname));
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handlePageChange = (page: PageType) => {
+    setCurrentPage(page);
+    const targetPath = pageConfig[page].path;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, '', targetPath);
+    }
+  };
 
   const config = pageConfig[currentPage];
 
@@ -65,6 +116,8 @@ function App() {
         return <EvaluationPanel />;
       case 'dataset':
         return <DatasetManager />;
+      case 'gcn':
+        return <GCNPage />;
       default:
         return <DashboardOverview />;
     }
@@ -72,23 +125,16 @@ function App() {
 
   return (
     <div className="flex h-screen bg-slate-900">
-      {/* Sidebar */}
       <Sidebar
         currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        onPageChange={handlePageChange}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
       />
 
-      {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {/* Topbar */}
         <Topbar title={config.title} description={config.description} />
-
-        {/* Page Content */}
-        <div className="bg-slate-900">
-          {renderPage()}
-        </div>
+        <div className="bg-slate-900">{renderPage()}</div>
       </div>
     </div>
   );

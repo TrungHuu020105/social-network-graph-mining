@@ -9,9 +9,9 @@ export const getOverview = async (): Promise<OverviewStats> => {
 };
 
 // Graph
-export const getGraphData = async (communityAlg: string = 'louvain'): Promise<GraphData> => {
+export const getGraphData = async (communityAlg: string = 'louvain', maxNodes: number = 1000): Promise<GraphData> => {
   const response = await apiClient.get('/graph', {
-    params: { community_alg: communityAlg }
+    params: { community_alg: communityAlg, max_nodes: maxNodes }
   });
   return response.data;
 };

@@ -27,13 +27,15 @@ async def get_recommendations(
     if user_id not in graph.nodes():
         raise HTTPException(status_code=404, detail="User not found")
     
+    normalized_algorithm = RecommendationService.normalize_algorithm(algorithm)
+
     recommendations, exec_time = RecommendationService.get_recommendations(
-        graph, nodes_data, user_id, algorithm=algorithm, top_k=top_k
+        graph, nodes_data, user_id, algorithm=normalized_algorithm, top_k=top_k
     )
     
     return {
         'source_id': user_id,
-        'algorithm': algorithm,
+        'algorithm': normalized_algorithm,
         'recommendations': recommendations,
         'num_recommendations': len(recommendations),
         'execution_time': round(exec_time, 4),

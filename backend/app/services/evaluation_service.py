@@ -101,13 +101,7 @@ class EvaluationService:
     ) -> Dict:
         """Đánh giá nhiều algorithms"""
         
-        algorithms = [
-            'common_neighbors',
-            'jaccard',
-            'adamic_adar',
-            'preferential_attachment',
-            'resource_allocation',
-        ]
+        algorithms = ['adamic_adar']
         
         results = []
         for algo in algorithms:

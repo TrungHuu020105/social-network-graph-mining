@@ -157,7 +157,7 @@ export const RecommendationGraph: React.FC<RecommendationGraphProps> = ({
           cyRef.current = cy;
           // Fit to view after a short delay
           setTimeout(() => {
-            cy.fit(10);
+            cy.fit(undefined, 10);
           }, 100);
         }
       } catch (error) {

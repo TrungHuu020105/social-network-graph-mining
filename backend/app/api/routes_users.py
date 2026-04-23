@@ -22,12 +22,14 @@ async def get_top_influential(
     graph = graph_builder.get_graph()
     nodes_data = graph_builder.get_nodes_data()
     
+    normalized_metric = "degree" if metric == "degree" else "pagerank"
+
     top_users = CentralityService.get_top_influential_users(
-        graph, nodes_data, metric=metric, limit=limit
+        graph, nodes_data, metric=normalized_metric, limit=limit
     )
     
     return {
-        'metric': metric,
+        'metric': normalized_metric,
         'limit': limit,
         'users': top_users,
     }

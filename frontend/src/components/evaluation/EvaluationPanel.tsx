@@ -11,13 +11,7 @@ export const EvaluationPanel: React.FC = () => {
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const algorithms = [
-    { value: 'common_neighbors', label: 'Common Neighbors' },
-    { value: 'jaccard', label: 'Jaccard' },
-    { value: 'adamic_adar', label: 'Adamic-Adar' },
-    { value: 'preferential_attachment', label: 'Preferential Attachment' },
-    { value: 'resource_allocation', label: 'Resource Allocation' },
-  ];
+  const algorithms = [{ value: 'adamic_adar', label: 'Adamic-Adar (Baseline)' }];
 
   const handleEvaluate = async () => {
     setLoading(true);

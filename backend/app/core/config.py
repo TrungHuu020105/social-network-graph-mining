@@ -21,3 +21,13 @@ CORS_ALLOW_HEADERS = ["*"]
 # Sample data files
 SAMPLE_NODES_FILE = DATA_DIR / "sample_nodes.csv"
 SAMPLE_EDGES_FILE = DATA_DIR / "sample_edges.csv"
+
+# Twitch/PTBR dataset files (preferred for graph ML)
+TWITCH_PT_EDGES_FILE = DATA_DIR / "twitch_pt_edges.csv"
+TWITCH_PT_FEATURES_FILE = DATA_DIR / "twitch_pt_features.json"
+TWITCH_PT_TARGET_FILE = DATA_DIR / "twitch_pt_target.csv"
+
+# Backward-compatible PTBR names (currently available in repo)
+PTBR_EDGES_FILE = DATA_DIR / "PTBR_edges.csv"
+PTBR_FEATURES_FILE = DATA_DIR / "PTBR_features.json"
+PTBR_TARGET_FILE = DATA_DIR / "PTBR_target.csv"

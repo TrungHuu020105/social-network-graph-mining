@@ -45,16 +45,6 @@ class ComparisonService:
             'quality_score': round(modularity_lp * 100, 2),
         })
         
-        # Girvan-Newman
-        comm_gn, modularity_gn, time_gn = CommunityDetectionService.girvan_newman(graph)
-        results.append({
-            'algorithm_name': 'Girvan-Newman',
-            'num_communities': len(set(comm_gn.values())),
-            'modularity': round(modularity_gn, 4),
-            'execution_time': round(time_gn, 4),
-            'quality_score': round(modularity_gn * 100, 2),
-        })
-        
         return {
             'comparison_type': 'community',
             'algorithms': results,
@@ -76,13 +66,7 @@ class ComparisonService:
             }
         
         results = []
-        algorithms = [
-            'common_neighbors',
-            'jaccard',
-            'adamic_adar',
-            'preferential_attachment',
-            'resource_allocation',
-        ]
+        algorithms = ['adamic_adar']
         
         for algo in algorithms:
             start_time = time.time()
