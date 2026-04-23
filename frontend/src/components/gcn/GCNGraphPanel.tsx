@@ -12,7 +12,7 @@ interface HoverInfo {
 export const GCNGraphPanel: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
-  const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
+  const [selectedNodeInfo, setSelectedNodeInfo] = useState<HoverInfo | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -79,17 +79,20 @@ export const GCNGraphPanel: React.FC = () => {
         } as any,
       });
 
-      cy.on('mouseover', 'node', (evt) => {
+      cy.on('tap', 'node', (evt) => {
         const data = evt.target.data();
-        setHoverInfo({
+        setSelectedNodeInfo({
           nodeId: data.id,
           prediction: data.prediction,
           probability: data.probability,
           degree: data.degree,
         });
       });
-      cy.on('mouseout', 'node', () => {
-        setHoverInfo(null);
+
+      cy.on('tap', (evt) => {
+        if (evt.target === cy) {
+          setSelectedNodeInfo(null);
+        }
       });
 
       cyRef.current = cy;
@@ -119,20 +122,32 @@ export const GCNGraphPanel: React.FC = () => {
         </span>
       </div>
 
-      <div
-        ref={containerRef}
-        style={{ height: 420, width: '100%' }}
-        className="rounded-lg border border-slate-700 bg-slate-900"
-      />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_280px]">
+        <div
+          ref={containerRef}
+          style={{ height: 420, width: '100%' }}
+          className="rounded-lg border border-slate-700 bg-slate-900"
+        />
 
-      {hoverInfo && (
-        <div className="mt-3 rounded-lg bg-slate-700 p-3 text-sm text-slate-200">
-          <p>node_id: {hoverInfo.nodeId}</p>
-          <p>prediction: {hoverInfo.prediction ?? 'N/A'}</p>
-          <p>probability: {hoverInfo.probability != null ? `${(hoverInfo.probability * 100).toFixed(2)}%` : 'N/A'}</p>
-          <p>degree: {hoverInfo.degree}</p>
+        <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3 text-sm text-slate-200">
+          <h4 className="mb-3 text-base font-semibold text-white">Node Details</h4>
+          {selectedNodeInfo ? (
+            <div className="space-y-2">
+              <p>node_id: {selectedNodeInfo.nodeId}</p>
+              <p>prediction: {selectedNodeInfo.prediction ?? 'N/A'}</p>
+              <p>
+                probability:{' '}
+                {selectedNodeInfo.probability != null
+                  ? `${(selectedNodeInfo.probability * 100).toFixed(2)}%`
+                  : 'N/A'}
+              </p>
+              <p>degree: {selectedNodeInfo.degree}</p>
+            </div>
+          ) : (
+            <p className="text-slate-400">Click vao node de xem thong tin chi tiet.</p>
+          )}
         </div>
-      )}
+      </div>
     </section>
   );
 };

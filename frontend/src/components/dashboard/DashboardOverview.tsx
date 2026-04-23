@@ -3,7 +3,6 @@ import { Activity, Link2, Network, Radio, Search, Users, Zap } from 'lucide-reac
 import { compareCommunityAlgorithmsDirect, getDatasetInfo, getOverview, getTopInfluential } from '../../api/endpoints';
 import { InfluentialUser, OverviewStats } from '../../types';
 import { GraphPanel } from '../graph/GraphPanel';
-import { UserExplorer } from '../users/UserExplorer';
 import { StatCard } from './StatCard';
 
 interface CommunityComparison {
@@ -19,6 +18,7 @@ export const DashboardOverview: React.FC = () => {
   const [communityComparison, setCommunityComparison] = useState<CommunityComparison | null>(null);
   const [users, setUsers] = useState<Array<{ id: string; name: string }>>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string>('louvain');
@@ -113,10 +113,14 @@ export const DashboardOverview: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowSearchSuggestions(true)}
+              onBlur={() => {
+                setTimeout(() => setShowSearchSuggestions(false), 120);
+              }}
               placeholder="Nhap ID node..."
               className="w-full rounded border border-slate-600 bg-slate-700 py-2 pl-9 pr-3 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
             />
-            {filteredUsers.length > 0 && (
+            {showSearchSuggestions && filteredUsers.length > 0 && (
               <div className="absolute z-20 mt-1 max-h-44 w-full overflow-y-auto rounded border border-slate-600 bg-slate-800 shadow-xl">
                 {filteredUsers.map((u) => (
                   <button
@@ -125,6 +129,7 @@ export const DashboardOverview: React.FC = () => {
                     onClick={() => {
                       setSelectedNodeId(u.id);
                       setSearchQuery(u.id);
+                      setShowSearchSuggestions(false);
                     }}
                     className="block w-full border-b border-slate-700 px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700"
                   >
@@ -136,27 +141,14 @@ export const DashboardOverview: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_320px]">
-          <GraphPanel
-            communityAlgorithm={selectedAlgorithm}
-            selectedNodeId={selectedNodeId}
-            onNodeClick={(nodeId) => {
-              setSelectedNodeId(nodeId);
-              setSearchQuery(nodeId);
-            }}
-          />
-
-          <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-3">
-            <h4 className="mb-3 text-sm font-semibold text-slate-200">Thong tin node</h4>
-            {selectedNodeId ? (
-              <UserExplorer initialUserId={selectedNodeId} />
-            ) : (
-              <div className="rounded border border-slate-700 bg-slate-800 p-3 text-sm text-slate-400">
-                Tim hoac click node tren graph de xem chi tiet.
-              </div>
-            )}
-          </div>
-        </div>
+        <GraphPanel
+          communityAlgorithm={selectedAlgorithm}
+          selectedNodeId={selectedNodeId}
+          onNodeClick={(nodeId) => {
+            setSelectedNodeId(nodeId);
+            setSearchQuery(nodeId);
+          }}
+        />
       </div>
 
       <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
