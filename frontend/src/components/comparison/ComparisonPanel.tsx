@@ -8,16 +8,17 @@ export const ComparisonPanel: React.FC = () => {
   const [communityData, setCommunityData] = useState<any>(null);
   const [recommendationData, setRecommendationData] = useState<any>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadUsers = async () => {
       try {
         const data = await getDatasetInfo();
-        setUsers(data.node_list);
-        if (data.node_list.length > 0) {
-          setSelectedUser(data.node_list[0]);
+        const nodeList = Array.isArray(data.node_list) ? data.node_list : [];
+        setUsers(nodeList);
+        if (nodeList.length > 0) {
+          setSelectedUser(nodeList[0].id);
         }
       } catch (error) {
         console.error('Error loading users:', error);
@@ -166,8 +167,10 @@ export const ComparisonPanel: React.FC = () => {
                 onChange={(e) => setSelectedUser(e.target.value)}
                 className="w-full md:w-64 px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500"
               >
-                {users.map(u => (
-                  <option key={u} value={u}>{u}</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.id} ({u.name})
+                  </option>
                 ))}
               </select>
             </div>

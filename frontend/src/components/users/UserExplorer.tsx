@@ -233,6 +233,7 @@ export const UserExplorer: React.FC<UserExplorerProps> = ({ initialUserId }) => 
                 </div>
               </div>
             )}
+
           </div>
         ) : (
           <div className="text-center text-slate-400 h-96 flex items-center justify-center">
@@ -243,3 +244,6 @@ export const UserExplorer: React.FC<UserExplorerProps> = ({ initialUserId }) => 
     </div>
   );
 };
+
+
+

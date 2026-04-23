@@ -44,8 +44,9 @@ const getBestLayoutName = (): string => {
   return 'cose';
 };
 
-const createLayoutOptions = (name: string): Record<string, any> => {
+const createLayoutOptions = (name: string, nodeCount: number): Record<string, any> => {
   if (name === 'fcose') {
+    const isLarge = nodeCount > 1200;
     return {
       name: 'fcose',
       quality: 'default',
@@ -53,10 +54,10 @@ const createLayoutOptions = (name: string): Record<string, any> => {
       animate: false,
       fit: true,
       padding: 50,
-      nodeRepulsion: 8000,
-      idealEdgeLength: 120,
+      nodeRepulsion: isLarge ? 6800 : 9000,
+      idealEdgeLength: isLarge ? 115 : 96,
       edgeElasticity: 0.1,
-      gravity: 0.25,
+      gravity: isLarge ? 0.2 : 0.32,
       numIter: 2500,
       tile: true,
       tilingPaddingVertical: 10,
@@ -64,16 +65,19 @@ const createLayoutOptions = (name: string): Record<string, any> => {
     };
   }
 
+  const isSmall = nodeCount <= 400;
+  const isMedium = nodeCount > 400 && nodeCount <= 1200;
+
   return {
     name: 'cose',
     animate: false,
     fit: true,
     randomize: false,
     padding: 50,
-    nodeRepulsion: 1800000,
-    idealEdgeLength: 170,
+    nodeRepulsion: isSmall ? 550000 : isMedium ? 950000 : 1300000,
+    idealEdgeLength: isSmall ? 90 : isMedium ? 110 : 130,
     edgeElasticity: 0.12,
-    gravity: 0.06,
+    gravity: isSmall ? 0.42 : isMedium ? 0.24 : 0.12,
     numIter: 2800,
     initialTemp: 220,
     coolingFactor: 0.985,
@@ -151,25 +155,50 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
     if (!graphData) return null;
     if (edgeMode === 'full') return graphData;
 
-    const nodeById = new Map(graphData.nodes.map((n) => [n.id, n]));
-    const degreeMap = new Map<string, number>();
-    for (const edge of graphData.links) {
-      degreeMap.set(edge.source, (degreeMap.get(edge.source) ?? 0) + 1);
-      degreeMap.set(edge.target, (degreeMap.get(edge.target) ?? 0) + 1);
+    const nodeCount = graphData.nodes.length;
+    const links = graphData.links;
+    if (links.length === 0) return graphData;
+
+    // Keep graph naturally connected: ensure each node retains a few incident edges
+    // before applying global reduction, so reduced mode still looks "alive" at every scale.
+    const adjacency = new Map<string, Array<{ edgeIdx: number; hash: number }>>();
+    links.forEach((edge, idx) => {
+      const hash = stableEdgeHash(edge.source, edge.target);
+      if (!adjacency.has(edge.source)) adjacency.set(edge.source, []);
+      if (!adjacency.has(edge.target)) adjacency.set(edge.target, []);
+      adjacency.get(edge.source)!.push({ edgeIdx: idx, hash });
+      adjacency.get(edge.target)!.push({ edgeIdx: idx, hash });
+    });
+
+    const selectedIdx = new Set<number>();
+    const minPerNode = nodeCount <= 350 ? 1 : 2;
+    adjacency.forEach((incident) => {
+      incident
+        .sort((a, b) => a.hash - b.hash)
+        .slice(0, minPerNode)
+        .forEach((item) => selectedIdx.add(item.edgeIdx));
+    });
+
+    const targetBudget =
+      nodeCount <= 300 ? nodeCount * 3 :
+      nodeCount <= 700 ? nodeCount * 4 :
+      nodeCount <= 1500 ? nodeCount * 5 :
+      nodeCount * 6;
+
+    if (selectedIdx.size < targetBudget) {
+      links
+        .map((edge, idx) => ({
+          idx,
+          hash: stableEdgeHash(edge.source, edge.target),
+        }))
+        .sort((a, b) => a.hash - b.hash)
+        .forEach((item) => {
+          if (selectedIdx.size >= targetBudget) return;
+          selectedIdx.add(item.idx);
+        });
     }
 
-    const reducedLinks = graphData.links.filter((edge) => {
-      const sourceDeg = degreeMap.get(edge.source) ?? 0;
-      const targetDeg = degreeMap.get(edge.target) ?? 0;
-      const sourceCommunity = nodeById.get(edge.source)?.community ?? -1;
-      const targetCommunity = nodeById.get(edge.target)?.community ?? -1;
-      const isBridge = sourceCommunity !== targetCommunity;
-      const h = stableEdgeHash(edge.source, edge.target);
-
-      if (isBridge) return h < 65;
-      if (sourceDeg > 28 || targetDeg > 28) return h < 32;
-      return h < 42;
-    });
+    const reducedLinks = links.filter((_, idx) => selectedIdx.has(idx));
 
     return {
       ...graphData,
@@ -462,7 +491,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
         });
         positionsCacheRef.current[graphKey] = positions;
       });
-      cy.layout(createLayoutOptions(bestLayout) as any).run();
+      cy.layout(createLayoutOptions(bestLayout, displayedGraph.nodes.length) as any).run();
     }
 
     applyCommunityFilterRef.current?.();
@@ -532,11 +561,11 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
 
   const handleRelayout = () => {
     const cy = cyRef.current;
-    if (!cy) return;
+    if (!cy || !displayedGraph) return;
     const bestLayout = getBestLayoutName();
     layoutNameRef.current = bestLayout;
     setLayoutName(bestLayout);
-    cy.layout(createLayoutOptions(bestLayout) as any).run();
+    cy.layout(createLayoutOptions(bestLayout, displayedGraph.nodes.length) as any).run();
     cy.one('layoutstop', () => {
       const positions: Record<string, cytoscape.Position> = {};
       cy.nodes().forEach((node) => {

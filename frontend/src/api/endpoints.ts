@@ -1,6 +1,14 @@
 // api/endpoints.ts
 import apiClient from './client';
-import { OverviewStats, GraphData, Recommendation, UserDetail, InfluentialUser, ExplanationData } from '../types';
+import {
+  OverviewStats,
+  GraphData,
+  Recommendation,
+  UserDetail,
+  InfluentialUser,
+  ExplanationData,
+  UserNeighborsResponse,
+} from '../types';
 
 // Overview
 export const getOverview = async (): Promise<OverviewStats> => {
@@ -52,7 +60,7 @@ export const getUserDetail = async (userId: string): Promise<UserDetail> => {
   return response.data;
 };
 
-export const getUserNeighbors = async (userId: string, depth: number = 1) => {
+export const getUserNeighbors = async (userId: string, depth: number = 1): Promise<UserNeighborsResponse> => {
   const response = await apiClient.get(`/users/${userId}/neighbors`, {
     params: { depth }
   });

@@ -60,7 +60,7 @@ export const RecommendationGraph: React.FC<RecommendationGraphProps> = ({
         });
 
         // Common neighbors nodes
-        explanation.common_neighbors.slice(0, 5).forEach((neighbor: string) => {
+        explanation.common_neighbors.forEach((neighbor: string) => {
           elements.push({
             data: {
               id: neighbor,

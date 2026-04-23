@@ -103,10 +103,25 @@ async def get_user_neighbors(user_id: str, depth: int = Query(1, ge=1, le=2)):
             'username': n_info.get('username', neighbor_id),
             'degree': graph.degree(neighbor_id),
         })
+
+    ego_nodes = {str(user_id)}
+    ego_nodes.update(str(neighbor_id) for neighbor_id in neighbors)
+    ego_edges = []
+    for source, target in graph.edges(ego_nodes):
+        source_id = str(source)
+        target_id = str(target)
+        if source_id == target_id:
+            continue
+        if source_id in ego_nodes and target_id in ego_nodes:
+            ego_edges.append({
+                'source': source_id,
+                'target': target_id,
+            })
     
     return {
         'user_id': user_id,
         'depth': depth,
         'neighbors': neighbor_list,
         'num_neighbors': len(neighbor_list),
+        'edges': ego_edges,
     }

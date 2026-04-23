@@ -79,6 +79,26 @@ export interface UserDetail {
   centrality_scores: Record<string, number>;
 }
 
+export interface UserNeighborNode {
+  id: string;
+  name: string;
+  username: string;
+  degree: number;
+}
+
+export interface UserNeighborEdge {
+  source: string;
+  target: string;
+}
+
+export interface UserNeighborsResponse {
+  user_id: string;
+  depth: number;
+  neighbors: UserNeighborNode[];
+  num_neighbors: number;
+  edges: UserNeighborEdge[];
+}
+
 export interface InfluentialUser {
   user_id: string;
   username: string;
