@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { GCNPrediction } from '../../types/gcn';
 
@@ -37,16 +37,16 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
   const predictionExplanation = (() => {
     if (!result) return '';
 
-    const classLabel = result.predicted_label === 1 ? 'lop Partner (1)' : 'lop Non-Partner (0)';
+    const classLabel = result.predicted_label === 1 ? 'lớp Partner (1)' : 'lớp Non-Partner (0)';
     const probabilityPct = (result.probability * 100).toFixed(2);
     const confidenceText =
       result.probability >= 0.85
-        ? 'do tin cay cao'
+        ? 'độ tin cậy cao'
         : result.probability >= 0.65
-          ? 'do tin cay trung binh'
-          : 'do tin cay thap, can kiem tra them';
+          ? 'độ tin cậy trung bình'
+          : 'độ tin cậy thấp, cần kiểm tra thêm';
 
-    return `Mo hinh xep node ${result.node_id} vao ${classLabel} voi xac suat ${probabilityPct}% (${confidenceText}). Du doan nay den tu viec ket hop thong tin dac trung node va cau truc lien ket trong do thi.`;
+    return `Mô hình xếp node ${result.node_id} vào ${classLabel} với xác suất ${probabilityPct}% (${confidenceText}). Dự đoán này đến từ việc kết hợp thông tin đặc trưng node và cấu trúc liên kết trong đồ thị.`;
   })();
 
   const badgeColor =
@@ -56,7 +56,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
 
   return (
     <section className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-      <h3 className="mb-3 text-lg font-semibold text-white">Prediction Panel</h3>
+      <h3 className="mb-3 text-lg font-semibold text-white">Bảng dự đoán</h3>
       <div className="relative flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-2.5 text-slate-500" size={18} />
@@ -70,7 +70,7 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
             onBlur={() => {
               window.setTimeout(() => setShowSuggestions(false), 120);
             }}
-            placeholder="Nhap node_id"
+            placeholder="Nhập node_id"
             className="w-full rounded-lg border border-slate-600 bg-slate-900 py-2 pl-10 pr-3 text-white outline-none focus:border-blue-500"
           />
           {showSuggestions && (
@@ -86,11 +86,11 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
                   }}
                   className="block w-full border-b border-slate-700 px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700"
                 >
-                  {node.id} ({node.name ?? `User ${node.id}`})
+                  {node.id} ({node.name ?? `Người dùng ${node.id}`})
                 </button>
               ))}
               {filteredNodeOptions.length === 0 && (
-                <div className="px-3 py-2 text-sm text-slate-400">Khong tim thay node phu hop</div>
+                <div className="px-3 py-2 text-sm text-slate-400">Không tìm thấy node phù hợp</div>
               )}
             </div>
           )}
@@ -100,24 +100,24 @@ export const PredictionPanel: React.FC<PredictionPanelProps> = ({
           disabled={predicting || !nodeId}
           className="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-600"
         >
-          {predicting ? 'Dang du doan...' : 'Predict'}
+          {predicting ? 'Đang dự đoán...' : 'Dự đoán'}
         </button>
       </div>
 
       {result && (
         <div className="mt-4 space-y-2 rounded-lg bg-slate-700 p-3 text-sm text-slate-200">
           <p>
-            <span className="text-slate-400">Node ID:</span> {result.node_id}
+            <span className="text-slate-400">Mã node:</span> {result.node_id}
           </p>
           <p>
-            <span className="text-slate-400">Predicted label:</span>{' '}
+            <span className="text-slate-400">Nhãn dự đoán:</span>{' '}
             <span className={`rounded border px-2 py-1 text-xs font-semibold ${badgeColor}`}>{result.predicted_label}</span>
           </p>
           <p>
-            <span className="text-slate-400">Probability:</span> {(result.probability * 100).toFixed(2)}%
+            <span className="text-slate-400">Xác suất:</span> {(result.probability * 100).toFixed(2)}%
           </p>
           <div className="mt-2 rounded-md border border-slate-600 bg-slate-800/60 p-2">
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-300">Giai thich</div>
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-300">Giải thích</div>
             <p className="text-xs leading-relaxed text-slate-300">{predictionExplanation}</p>
           </div>
         </div>

@@ -1,412 +1,204 @@
-# SocialGraph Analytics
-## Ứng dụng Graph Mining để phân tích cộng đồng và gợi ý kết nối trong mạng xã hội
+﻿# SocialGraph Analytics
 
-**Xây dựng bởi:** [Sinh viên]  
-**Ngành:** Khoa Học Dữ Liệu / Công Nghệ Thông Tin  
-**Năm học:** 2025-2026
+Ứng dụng phân tích mạng xã hội bằng Graph Mining và Graph Neural Network (GCN), gồm:
+- Backend: FastAPI + NetworkX + PyTorch
+- Frontend: React + TypeScript + Vite + Tailwind + Cytoscape
 
----
+## 1. Tính năng chính
 
-## 📋 Giới Thiệu
+- Tổng quan đồ thị: số node, số cạnh, mật độ, đường kính, hệ số gom cụm.
+- Phân tích cộng đồng:
+  - Louvain (greedy modularity trong NetworkX)
+  - Label Propagation
+  - So sánh và chọn thuật toán tốt hơn theo modularity.
+- Khám phá người dùng:
+  - Thông tin chi tiết user
+  - Hàng xóm theo độ sâu 1 hoặc 2
+  - Top user ảnh hưởng theo `pagerank` hoặc `degree`.
+- Gợi ý kết nối (Link Prediction):
+  - Adamic-Adar
+  - Resource Allocation
+  - Preferential Attachment
+  - GCN Link Prediction
+  - Có API giải thích vì sao một cặp được gợi ý.
+- Đánh giá thuật toán gợi ý:
+  - Ẩn một phần cạnh thật (hidden-edge evaluation)
+  - Precision@K, Hit Rate.
+- GCN Node Classification:
+  - Train mô hình GCN
+  - Dự đoán nhãn node
+  - Lấy toàn bộ prediction
+  - Trực quan embedding 2D (PCA).
+- Quản lý dataset:
+  - Upload dataset đơn giản (`nodes.csv`, `edges.csv`)
+  - Upload dataset đầy đủ cho ML (`edges.csv`, `features.json`, `target.csv`)
+  - Reset về dataset mặc định.
 
-**SocialGraph Analytics** là một hệ thống hoàn chỉnh để phân tích mạng xã hội bằng **Graph Mining**. Ứng dụng giúp:
+## 2. Cấu trúc thư mục
 
-✅ **Phát hiện cộng đồng** trong mạng lưới người dùng  
-✅ **Xác định người ảnh hưởng** dựa trên các chỉ số trung tâm (Centrality Measures)  
-✅ **Gợi ý kết nối mới** giữa những người dùng chưa kết nối  
-✅ **So sánh nhiều thuật toán** để tìm giải pháp tối ưu  
-✅ **Đánh giá chất lượng** của các thuật toán recommendation  
-
----
-
-## 🎯 Các Tính Năng Chính
-
-### 1. **Dashboard Tổng Quan**
-- Thống kê số lượng người dùng, kết nối, mật độ mạng
-- Top 5 người có ảnh hưởng (PageRank)
-- Biểu đồ và card thống kê
-
-### 2. **Phân Tích Cộng Đồng**
-- Hỗ trợ 3 thuật toán: **Louvain**, **Label Propagation**, **Girvan-Newman**
-- Tính modularity và thời gian thực thi
-- Visualize cộng đồng trên đồ thị
-
-### 3. **Khám Phá Người Dùng**
-- Tìm kiếm và xem chi tiết người dùng
-- Hiển thị 5 chỉ số centrality:
-  - Degree Centrality
-  - Betweenness Centrality
-  - Closeness Centrality
-  - PageRank
-  - Eigenvector Centrality
-- Xem danh sách hàng xóm
-
-### 4. **Gợi Ý Kết Nối**
-- 5 thuật toán link prediction:
-  - **Common Neighbors** - Dựa trên số bạn chung
-  - **Jaccard Coefficient** - Độ giống nhau tỷ lệ
-  - **Adamic-Adar** - Bạn chung có trọng số
-  - **Preferential Attachment** - Hub yêu thích
-  - **Resource Allocation** - Lan tỏa tài nguyên
-- Giải thích chi tiết lý do được gợi ý
-
-### 5. **So Sánh Thuật Toán**
-- So sánh Community Detection Algorithms
-- So sánh Recommendation Algorithms
-- Biểu đồ runtime, modularity, quality metrics
-
-### 6. **Đánh Giá Kết Quả**
-- Hidden-edge evaluation method
-- Precision@K, Hit Rate
-- Kiểm tra độ chính xác của recommendations
-
-### 7. **Quản Lý Dữ Liệu**
-- Upload dataset mới (CSV format)
-- Reset về dataset mẫu
-- Thông tin dataset hiện tại
-
-### 8. **Visualize Đồ Thị**
-- Cytoscape.js: zoom, pan, drag, click
-- Tô màu theo cộng đồng
-- Legend và controls tương tác
-
----
-
-## 🏗️ Kiến Trúc Hệ Thống
-
-```
-┌─────────────────────────────────────┐
-│  Frontend (React + Vite + TS)      │
-│  ✓ Dashboard đẹp                   │
-│  ✓ Graph visualization             │
-│  ✓ Charts & tables                 │
-└────────────────┬────────────────────┘
-                 │ HTTP/JSON
-┌────────────────▼────────────────────┐
-│  Backend (FastAPI)                  │
-│  ✓ 8 route modules                 │
-│  ✓ 7 services (graph mining logic) │
-│  ✓ CORS enabled                    │
-└────────────────┬────────────────────┘
-                 │
-┌────────────────▼────────────────────┐
-│  Data Layer (NetworkX + CSV)        │
-│  ✓ In-memory graph storage         │
-│  ✓ CSV import/export               │
-│  ✓ Sample datasets                 │
-└─────────────────────────────────────┘
-```
-
----
-
-## 📦 Tech Stack
-
-| Thành Phần | Công Nghệ | Phiên Bản |
-|-----------|-----------|----------|
-| **Backend** | Python | 3.10+ |
-| - Framework | FastAPI | 0.104+ |
-| - Graph Mining | NetworkX | 3.2 |
-| - Data Processing | Pandas | 2.1+ |
-| - Type Validation | Pydantic | 2.5+ |
-| - Server | Uvicorn | 0.24+ |
-| **Frontend** | React | 18.2+ |
-| - Build Tool | Vite | 5.0+ |
-| - Language | TypeScript | 5.2+ |
-| - Styling | Tailwind CSS | 3.3+ |
-| - HTTP Client | Axios | 1.6+ |
-| - Graph Viz | Cytoscape.js | 3.28+ |
-| - Charts | Recharts | 2.10+ |
-| - Icons | Lucide React | 0.292+ |
-
----
-
-## 📁 Cấu Trúc Thư Mục
-
-```
+```text
 DoAn/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py                    # FastAPI main app
-│   │   ├── api/                       # Route modules
-│   │   ├── core/                      # Config & graph builder
-│   │   ├── services/                  # Business logic
-│   │   ├── schemas/                   # Pydantic models
-│   │   └── utils/                     # Helper functions
-│   ├── data/
-│   │   ├── sample_nodes.csv           # Sample dataset
-│   │   └── sample_edges.csv
-│   ├── requirements.txt               # Python dependencies
-│   └── README_backend.md
-│
-├── frontend/
-│   ├── src/
-│   │   ├── api/                       # API client
-│   │   ├── components/                # React components
-│   │   ├── pages/                     # Pages (via Router)
-│   │   ├── types/                     # TypeScript types
-│   │   ├── App.tsx
-│   │   ├── main.tsx
-│   │   └── index.css
-│   ├── package.json
-│   ├── vite.config.ts
-│   ├── tailwind.config.js
-│   ├── index.html
-│   └── README_frontend.md
-│
-├── README.md                          # This file
-└── DEMO_FLOW.md                       # Demo script
+├─ backend/
+│  ├─ app/
+│  │  ├─ api/                  # Các route FastAPI
+│  │  ├─ core/                 # Config, GraphBuilder, data storage
+│  │  ├─ services/             # Logic cộng đồng, gợi ý, GCN, đánh giá...
+│  │  ├─ schemas/              # Pydantic models
+│  │  ├─ utils/                # Hàm tiện ích đồ thị
+│  │  └─ main.py               # Entry FastAPI
+│  ├─ data/                    # Dataset mặc định đang dùng
+│  ├─ data1/                   # Dataset phụ
+│  ├─ data505/                 # Dataset phụ
+│  └─ requirements.txt
+├─ frontend/
+│  ├─ src/
+│  │  ├─ api/
+│  │  ├─ components/
+│  │  ├─ pages/
+│  │  ├─ types/
+│  │  ├─ App.tsx
+│  │  └─ main.tsx
+│  ├─ package.json
+│  └─ vite.config.ts
+├─ generate_data.py
+└─ README.md
 ```
 
----
+## 3. Yêu cầu môi trường
 
-## 🚀 Cài Đặt & Chạy
-
-### Yêu Cầu
 - Python 3.10+
-- Node.js 16+
-- npm hoặc yarn
+- Node.js 18+ (khuyến nghị)
+- npm
 
-### Backend Setup
+## 4. Cài đặt và chạy dự án
+
+### 4.1. Chạy backend
 
 ```bash
-# 1. Vào thư mục backend
 cd backend
+python -m venv .venv
+```
 
-# 2. Tạo virtual environment
-python -m venv venv
+Windows PowerShell:
+```bash
+.\.venv\Scripts\Activate.ps1
+```
 
-# 3. Kích hoạt virtual environment
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+macOS/Linux:
+```bash
+source .venv/bin/activate
+```
 
-# 4. Cài đặt dependencies
+Cài thư viện và chạy:
+```bash
 pip install -r requirements.txt
-
-# 5. Chạy server
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Backend sẽ chạy tại: **http://localhost:8000**  
-API Docs (Swagger UI): **http://localhost:8000/docs**
+Backend chạy tại:
+- `http://localhost:8000`
+- Swagger: `http://localhost:8000/docs`
 
-### Frontend Setup
+### 4.2. Chạy frontend
 
 ```bash
-# 1. Vào thư mục frontend
 cd frontend
-
-# 2. Cài đặt dependencies
 npm install
-
-# 3. Chạy development server
 npm run dev
 ```
 
-Frontend sẽ chạy tại: **http://localhost:5173**
+Frontend chạy tại:
+- `http://localhost:5173`
 
-### Chạy Cả Hai
+Vite đã cấu hình proxy `/api` sang `http://localhost:8000`.
 
-**Terminal 1 - Backend:**
-```bash
-cd backend
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-python -m uvicorn app.main:app --reload
-```
+## 5. Dataset mặc định và định dạng dữ liệu
 
-**Terminal 2 - Frontend:**
-```bash
-cd frontend
-npm run dev
-```
+Khi khởi động, backend ưu tiên dataset trong `backend/data/`:
+- `PTBR_edges.csv`
+- `PTBR_features.json`
+- `PTBR_target.csv`
 
-Mở browser: **http://localhost:5173**
+Nếu thiếu bộ trên, hệ thống sẽ thử fallback sang tên file `twitch_pt_*` nếu có.
 
----
+### 5.1. Upload dataset đơn giản
 
-## 📊 API Endpoints
+API: `POST /api/dataset/upload`
+- `nodes_file`: CSV có cột `id` (khuyến nghị thêm `name`, `username`)
+- `edges_file`: CSV có cặp cột `source,target` hoặc `from,to`
 
-### Overview
-```
-GET /api/overview
-→ Thống kê tổng quan
-```
+### 5.2. Upload dataset đầy đủ cho ML
 
-### Graph Data
-```
-GET /api/graph?community_alg=louvain
-→ Dữ liệu graph với cộng đồng
-```
+API: `POST /api/dataset/upload-ml`
+- `edges_file`: CSV `source,target` hoặc `from,to`
+- `features_file`: JSON dạng `{ "node_id": [feature_index, ...] }`
+- `target_file`: CSV có cột node id (`new_id`/`node_id`/`id`) và nhãn (`partner`/`mature`/`label`/`target`/`y`)
 
-### Communities
-```
-GET /api/communities?algorithm=louvain
-→ Danh sách cộng đồng
+## 6. API chính
 
-GET /api/communities/stats
-→ Thống kê cộng đồng
-```
+### 6.1. Tổng quan và đồ thị
+- `GET /api/overview`
+- `GET /api/graph?community_alg=louvain&max_nodes=1000`
 
-### Users
-```
-GET /api/users/top-influential?metric=pagerank&limit=10
-→ Top influential users
+### 6.2. Cộng đồng
+- `GET /api/communities?algorithm=louvain`
+- `GET /api/communities/stats`
+- `GET /api/communities/compare`
+- `GET /api/communities/best`
 
-GET /api/users/{user_id}
-→ Chi tiết user
+### 6.3. Người dùng
+- `GET /api/users/top-influential?metric=pagerank&limit=10`
+- `GET /api/users/{user_id}`
+- `GET /api/users/{user_id}/neighbors?depth=1`
 
-GET /api/users/{user_id}/neighbors?depth=1
-→ Hàng xóm
-```
+### 6.4. Gợi ý kết nối
+- `GET /api/recommendations/{user_id}?algorithm=adamic_adar&top_k=10`
+- `GET /api/recommendations/{user_id}/explain?target={target_id}&algorithm=adamic_adar`
 
-### Recommendations
-```
-GET /api/recommendations/{user_id}?algorithm=adamic_adar&top_k=10
-→ Gợi ý kết nối
+### 6.5. So sánh và đánh giá
+- `GET /api/comparison/community`
+- `GET /api/comparison/recommendation?source_id={id}&top_k=10`
+- `GET /api/evaluation/recommendation?algorithm=adamic_adar&top_k=10&hidden_edge_ratio=0.1`
+- `GET /api/evaluation/multiple?top_k=10&hidden_edge_ratio=0.1`
 
-GET /api/recommendations/explain?source=0&target=1
-→ Giải thích gợi ý
-```
+### 6.6. Dataset
+- `GET /api/dataset/info`
+- `POST /api/dataset/upload`
+- `POST /api/dataset/upload-ml`
+- `POST /api/dataset/reset`
 
-### Comparison
-```
-GET /api/comparison/community
-→ So sánh community algorithms
+### 6.7. GCN
+- `GET /api/gcn/train`
+- `GET /api/gcn/predict/{node_id}`
+- `GET /api/gcn/all-predictions`
+- `GET /api/gcn/embeddings`
+- `GET /api/gcn/link/train`
+- `GET /api/gcn/link/score/{source_id}/{target_id}`
 
-GET /api/comparison/recommendation?source_id=0&top_k=10
-→ So sánh recommendation algorithms
-```
+## 7. Công nghệ sử dụng
 
-### Evaluation
-```
-GET /api/evaluation/recommendation?algorithm=adamic_adar&top_k=10&hidden_edge_ratio=0.1
-→ Đánh giá recommendation
+Backend:
+- FastAPI
+- NetworkX
+- Pandas, NumPy, SciPy
+- PyTorch
+- Pydantic
 
-GET /api/evaluation/multiple?top_k=10&hidden_edge_ratio=0.1
-→ Đánh giá nhiều algorithms
-```
+Frontend:
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Axios
+- Cytoscape
+- Recharts
+- Lucide React
 
-### Dataset
-```
-GET /api/dataset/info
-→ Thông tin dataset
+## 8. Ghi chú quan trọng
 
-POST /api/dataset/upload
-→ Upload dataset mới
-
-POST /api/dataset/reset
-→ Reset về mẫu
-```
+- Các file `.md` cũ trong dự án có thể không còn cập nhật; README này đã được viết lại theo code hiện tại.
+- Dự án đang chạy theo mô hình in-memory (chưa dùng DB), phù hợp cho demo, nghiên cứu và đồ án.
+- Sau khi upload dataset mới cho ML, nên vào trang GCN và train lại để cập nhật kết quả.
 
 ---
 
-## 🧪 Demo Flow
-
-Xem [DEMO_FLOW.md](DEMO_FLOW.md) để có script demo chi tiết.
-
-**Quick Demo:**
-1. Mở http://localhost:5173
-2. Trang **Tổng Quan**: Xem thống kê tổng quát
-3. Trang **Phân Tích Cộng Đồng**: Chạy Louvain, xem cộng đồng
-4. Trang **Người Dùng**: Chọn 1 user, xem chi tiết
-5. Trang **Gợi Ý**: Xem top 10 gợi ý cho user đó
-6. Trang **So Sánh**: So sánh các thuật toán
-7. Trang **Đánh Giá**: Chạy evaluation
-
----
-
-## 🧬 Các Thuật Toán Triển Khai
-
-### Community Detection (3 thuật toán)
-- **Louvain**: Tối ưu modularity - Nhanh, chất lượng cao
-- **Label Propagation**: Đơn giản, không cần các thông số
-- **Girvan-Newman**: Hierarchical, dễ diễn giải
-
-### Centrality Measures (5 chỉ số)
-- **Degree Centrality**: Số bạn trực tiếp
-- **Betweenness Centrality**: Vai trò cầu nối
-- **Closeness Centrality**: Gần trung tâm
-- **PageRank**: Từ web ranking (phù hợp mạng xã hội)
-- **Eigenvector Centrality**: Ảnh hưởng từ những người có ảnh hưởng
-
-### Link Prediction / Recommendation (5 thuật toán)
-- **Common Neighbors**: Dựa trên bạn chung
-- **Jaccard Coefficient**: Độ giống nhau
-- **Adamic-Adar**: Bạn chung có trọng số
-- **Preferential Attachment**: Hub yêu thích
-- **Resource Allocation**: Lan tỏa tài nguyên
-
----
-
-## 📈 Dataset Mẫu
-
-### Sample Data
-- **34 người dùng** (từ Karate Club Network)
-- **78 kết nối**
-- **Định dạng CSV**
-
-### Tạo Dataset Mới
-Upload 2 file CSV:
-1. **nodes.csv**: `id,name,username`
-2. **edges.csv**: `source,target`
-
-Ví dụ:
-```csv
-# nodes.csv
-0,Nguyễn Văn A,nguyenvana
-1,Trần Thị B,tranthib
-...
-
-# edges.csv
-0,1
-0,2
-1,2
-...
-```
-
----
-
-## 💡 Hướng Phát Triển Tương Lai
-
-1. **Database** - Lưu trữ vĩnh viễn (PostgreSQL/MongoDB)
-2. **Authentication** - Xác thực người dùng
-3. **Real-time** - WebSocket cho cập nhật realtime
-4. **Advanced Visualization** - 3D graph, timeline
-5. **Machine Learning** - Predictive modeling
-6. **Mobile App** - React Native
-7. **Neo4j Integration** - Graph database native
-8. **Performance** - Caching, async processing
-
----
-
-## 👥 Contributor
-
-**Sinh viên:** [Tên Sinh Viên]  
-**Giảng viên hướng dẫn:** [Tên Giảng Viên]  
-
----
-
-## 📝 Ghi Chú
-
-- ✅ Tất cả thuật toán đã được kiểm thử
-- ✅ API hoàn chỉnh với 15 endpoints
-- ✅ Frontend responsive (desktop & tablet)
-- ✅ Code có comment và dễ hiểu
-- ✅ Khả năng mở rộng tốt
-
----
-
-## 📞 Liên Hệ & Hỗ Trợ
-
-Nếu có vấn đề:
-1. Kiểm tra log của backend
-2. Xem browser console của frontend
-3. Đọc README_backend.md và README_frontend.md
-4. Kiểm tra đầu vào dữ liệu CSV
-
----
-
-**Phiên bản:** 1.0.0  
-**Cập nhật lần cuối:** 2026-04-22
+Cập nhật lần cuối: 2026-04-24

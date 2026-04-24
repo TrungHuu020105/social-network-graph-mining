@@ -1,7 +1,6 @@
-// components/community/CommunityAnalysis.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getCommunities } from '../../api/endpoints';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 export const CommunityAnalysis: React.FC = () => {
   const [algorithm, setAlgorithm] = useState('louvain');
@@ -14,42 +13,39 @@ export const CommunityAnalysis: React.FC = () => {
   ];
 
   useEffect(() => {
+    const loadCommunities = async () => {
+      setLoading(true);
+      try {
+        const data = await getCommunities(algorithm);
+        setCommunityData(data);
+      } catch (error) {
+        console.error('Error loading communities:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     loadCommunities();
   }, [algorithm]);
 
-  const loadCommunities = async () => {
-    setLoading(true);
-    try {
-      const data = await getCommunities(algorithm);
-      setCommunityData(data);
-    } catch (error) {
-      console.error('Error loading communities:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const chartData =
+    communityData?.communities.map((c: any) => ({
+      name: `Cộng đồng ${c.id}`,
+      value: c.size,
+    })) || [];
 
-  const chartData = communityData?.communities.map((c: any) => ({
-    name: `Community ${c.id}`,
-    value: c.size,
-  })) || [];
-
-  const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
+  const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Algorithm Selector */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-        <label className="block text-white text-sm font-medium mb-4">Chọn Thuật Toán</label>
+    <div className="space-y-6 p-6">
+      <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+        <label className="mb-4 block text-sm font-medium text-white">Chọn thuật toán</label>
         <div className="flex flex-wrap gap-3">
-          {algorithms.map(algo => (
+          {algorithms.map((algo) => (
             <button
               key={algo.value}
               onClick={() => setAlgorithm(algo.value)}
-              className={`px-6 py-2 rounded font-medium transition-colors ${
-                algorithm === algo.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              className={`rounded px-6 py-2 font-medium transition-colors ${
+                algorithm === algo.value ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
               }`}
             >
               {algo.label}
@@ -62,27 +58,24 @@ export const CommunityAnalysis: React.FC = () => {
         <div className="text-center text-slate-400">Đang tải...</div>
       ) : communityData ? (
         <>
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 text-center">
-              <p className="text-slate-400 text-sm">Số Cộng Đồng</p>
-              <p className="text-3xl font-bold text-blue-400 mt-2">{communityData.num_communities}</p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-6 text-center">
+              <p className="text-sm text-slate-400">Số cộng đồng</p>
+              <p className="mt-2 text-3xl font-bold text-blue-400">{communityData.num_communities}</p>
             </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 text-center">
-              <p className="text-slate-400 text-sm">Modularity</p>
-              <p className="text-3xl font-bold text-green-400 mt-2">{communityData.modularity.toFixed(4)}</p>
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-6 text-center">
+              <p className="text-sm text-slate-400">Modularity</p>
+              <p className="mt-2 text-3xl font-bold text-green-400">{communityData.modularity.toFixed(4)}</p>
             </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 text-center">
-              <p className="text-slate-400 text-sm">Thời Gian (s)</p>
-              <p className="text-3xl font-bold text-orange-400 mt-2">{communityData.execution_time.toFixed(4)}</p>
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-6 text-center">
+              <p className="text-sm text-slate-400">Thời gian (s)</p>
+              <p className="mt-2 text-3xl font-bold text-orange-400">{communityData.execution_time.toFixed(4)}</p>
             </div>
           </div>
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Community Size Distribution */}
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Phân Bố Kích Thước Cộng Đồng</h3>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+              <h3 className="mb-4 text-lg font-bold text-white">Phân bố kích thước cộng đồng</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -95,8 +88,8 @@ export const CommunityAnalysis: React.FC = () => {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {chartData.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    {chartData.map((_, index: number) => (
+                      <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -104,9 +97,8 @@ export const CommunityAnalysis: React.FC = () => {
               </ResponsiveContainer>
             </div>
 
-            {/* Bar Chart */}
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Kích Thước Cộng Đồng</h3>
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+              <h3 className="mb-4 text-lg font-bold text-white">Kích thước cộng đồng</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -119,28 +111,24 @@ export const CommunityAnalysis: React.FC = () => {
             </div>
           </div>
 
-          {/* Community Details Table */}
-          <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
-            <h3 className="text-lg font-bold text-white p-6 pb-0">Chi Tiết Cộng Đồng</h3>
+          <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
+            <h3 className="p-6 pb-0 text-lg font-bold text-white">Chi tiết cộng đồng</h3>
             <table className="w-full">
               <thead className="bg-slate-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-white">ID</th>
-                  <th className="px-6 py-3 text-right text-white">Kích Thước</th>
-                  <th className="px-6 py-3 text-right text-white">Mật Độ</th>
-                  <th className="px-6 py-3 text-left text-white">Thành Viên (Mẫu)</th>
+                  <th className="px-6 py-3 text-right text-white">Kích thước</th>
+                  <th className="px-6 py-3 text-right text-white">Mật độ</th>
+                  <th className="px-6 py-3 text-left text-white">Thành viên (mẫu)</th>
                 </tr>
               </thead>
               <tbody>
                 {communityData.communities.map((community: any, idx: number) => (
-                  <tr
-                    key={idx}
-                    className={idx % 2 === 0 ? 'bg-slate-700/50' : ''}
-                  >
-                    <td className="px-6 py-3 text-white font-medium">{community.id}</td>
+                  <tr key={idx} className={idx % 2 === 0 ? 'bg-slate-700/50' : ''}>
+                    <td className="px-6 py-3 font-medium text-white">{community.id}</td>
                     <td className="px-6 py-3 text-right text-blue-300">{community.size}</td>
                     <td className="px-6 py-3 text-right text-green-300">{community.density?.toFixed(4) || 'N/A'}</td>
-                    <td className="px-6 py-3 text-slate-400 text-sm">
+                    <td className="px-6 py-3 text-sm text-slate-400">
                       {community.members.slice(0, 3).join(', ')}
                       {community.members.length > 3 ? `, +${community.members.length - 3}` : ''}
                     </td>

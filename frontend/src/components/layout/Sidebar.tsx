@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   BarChart3,
   BrainCircuit,
@@ -27,13 +27,13 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, onToggle }) => {
   const navItems: NavItem[] = [
-    { id: 'overview', label: 'Tong Quan', icon: <BarChart3 size={20} /> },
-    { id: 'community', label: 'Cong Dong', icon: <Network size={20} /> },
-    { id: 'users', label: 'Nguoi Dung', icon: <Users size={20} /> },
-    { id: 'recommendations', label: 'Goi Y', icon: <Share2 size={20} /> },
-    { id: 'comparison', label: 'So Sanh', icon: <GitCompare size={20} /> },
-    { id: 'dataset', label: 'Du Lieu', icon: <Database size={20} /> },
-    { id: 'gcn', label: 'GCN Prediction', icon: <BrainCircuit size={20} /> },
+    { id: 'overview', label: 'Tổng quan', icon: <BarChart3 size={20} /> },
+    { id: 'community', label: 'Cộng đồng', icon: <Network size={20} /> },
+    { id: 'users', label: 'Người dùng', icon: <Users size={20} /> },
+    { id: 'recommendations', label: 'Gợi ý', icon: <Share2 size={20} /> },
+    { id: 'comparison', label: 'So sánh', icon: <GitCompare size={20} /> },
+    { id: 'dataset', label: 'Dữ liệu', icon: <Database size={20} /> },
+    { id: 'gcn', label: 'Dự đoán GCN', icon: <BrainCircuit size={20} /> },
   ];
 
   return (

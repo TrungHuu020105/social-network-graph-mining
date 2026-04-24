@@ -16,6 +16,7 @@ export const GCNGraphPanel: React.FC = () => {
 
   useEffect(() => {
     let active = true;
+
     const load = async () => {
       const graph = await getGraphData('louvain');
       if (!active || !containerRef.current) return;
@@ -39,6 +40,7 @@ export const GCNGraphPanel: React.FC = () => {
           },
         };
       });
+
       const edges = graph.links.map((edge: any, idx: number) => ({
         data: {
           id: `${edge.source}-${edge.target}-${idx}`,
@@ -99,6 +101,7 @@ export const GCNGraphPanel: React.FC = () => {
     };
 
     load().catch(() => {});
+
     return () => {
       active = false;
       if (cyRef.current) {
@@ -110,15 +113,15 @@ export const GCNGraphPanel: React.FC = () => {
 
   return (
     <section className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-      <h3 className="mb-3 text-lg font-semibold text-white">Graph Visualization (max 1000 nodes)</h3>
+      <h3 className="mb-3 text-lg font-semibold text-white">Trực quan đồ thị (tối đa 1000 node)</h3>
       <div className="mb-3 flex gap-4 text-xs text-slate-300">
         <span className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-full bg-blue-500" />
-          Class 0
+          Lớp 0
         </span>
         <span className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-full bg-red-500" />
-          Class 1
+          Lớp 1
         </span>
       </div>
 
@@ -130,21 +133,21 @@ export const GCNGraphPanel: React.FC = () => {
         />
 
         <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3 text-sm text-slate-200">
-          <h4 className="mb-3 text-base font-semibold text-white">Node Details</h4>
+          <h4 className="mb-3 text-base font-semibold text-white">Chi tiết node</h4>
           {selectedNodeInfo ? (
             <div className="space-y-2">
               <p>node_id: {selectedNodeInfo.nodeId}</p>
-              <p>prediction: {selectedNodeInfo.prediction ?? 'N/A'}</p>
+              <p>dự đoán: {selectedNodeInfo.prediction ?? 'N/A'}</p>
               <p>
-                probability:{' '}
+                xác suất:{' '}
                 {selectedNodeInfo.probability != null
                   ? `${(selectedNodeInfo.probability * 100).toFixed(2)}%`
                   : 'N/A'}
               </p>
-              <p>degree: {selectedNodeInfo.degree}</p>
+              <p>bậc: {selectedNodeInfo.degree}</p>
             </div>
           ) : (
-            <p className="text-slate-400">Click vao node de xem thong tin chi tiet.</p>
+            <p className="text-slate-400">Nhấn vào node để xem thông tin chi tiết.</p>
           )}
         </div>
       </div>

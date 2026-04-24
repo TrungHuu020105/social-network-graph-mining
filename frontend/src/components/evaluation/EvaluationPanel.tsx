@@ -1,7 +1,6 @@
-// components/evaluation/EvaluationPanel.tsx
 import React, { useState } from 'react';
-import { evaluateRecommendation, evaluateMultipleAlgorithms } from '../../api/endpoints';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { evaluateMultipleAlgorithms, evaluateRecommendation } from '../../api/endpoints';
 
 export const EvaluationPanel: React.FC = () => {
   const [evaluationType, setEvaluationType] = useState<'single' | 'multiple'>('multiple');
@@ -46,60 +45,61 @@ export const EvaluationPanel: React.FC = () => {
   });
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Configuration */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-        <h3 className="text-xl font-bold text-white mb-4">Cấu Hình Đánh Giá</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-6 p-6">
+      <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+        <h3 className="mb-4 text-xl font-bold text-white">Cấu hình đánh giá</h3>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="block text-white text-sm font-medium mb-2">Loại Đánh Giá</label>
+            <label className="mb-2 block text-sm font-medium text-white">Loại đánh giá</label>
             <select
               value={evaluationType}
               onChange={(e) => setEvaluationType(e.target.value as 'single' | 'multiple')}
-              className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500"
+              className="w-full rounded border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
             >
-              <option value="single">Một Thuật Toán</option>
-              <option value="multiple">Nhiều Thuật Toán</option>
+              <option value="single">Một thuật toán</option>
+              <option value="multiple">Nhiều thuật toán</option>
             </select>
           </div>
 
           {evaluationType === 'single' && (
             <div>
-              <label className="block text-white text-sm font-medium mb-2">Thuật Toán</label>
+              <label className="mb-2 block text-sm font-medium text-white">Thuật toán</label>
               <select
                 value={algorithm}
                 onChange={(e) => setAlgorithm(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500"
+                className="w-full rounded border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
               >
-                {algorithms.map(algo => (
-                  <option key={algo.value} value={algo.value}>{algo.label}</option>
+                {algorithms.map((algo) => (
+                  <option key={algo.value} value={algo.value}>
+                    {algo.label}
+                  </option>
                 ))}
               </select>
             </div>
           )}
 
           <div>
-            <label className="block text-white text-sm font-medium mb-2">Top K</label>
+            <label className="mb-2 block text-sm font-medium text-white">Top K</label>
             <input
               type="number"
               value={topK}
-              onChange={(e) => setTopK(Math.max(1, parseInt(e.target.value)))}
+              onChange={(e) => setTopK(Math.max(1, parseInt(e.target.value || '1', 10)))}
               min="1"
               max="50"
-              className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500"
+              className="w-full rounded border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-white text-sm font-medium mb-2">Tỷ Lệ Ẩn (%)</label>
+            <label className="mb-2 block text-sm font-medium text-white">Tỷ lệ ẩn (%)</label>
             <input
               type="number"
               value={Math.round(hiddenRatio * 100)}
-              onChange={(e) => setHiddenRatio(Math.max(1, Math.min(50, parseInt(e.target.value))) / 100)}
+              onChange={(e) => setHiddenRatio(Math.max(1, Math.min(50, parseInt(e.target.value || '10', 10))) / 100)}
               min="1"
               max="50"
-              className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500"
+              className="w-full rounded border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
             />
           </div>
         </div>
@@ -107,34 +107,29 @@ export const EvaluationPanel: React.FC = () => {
         <button
           onClick={handleEvaluate}
           disabled={loading}
-          className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white font-medium rounded transition-colors"
+          className="mt-4 rounded bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:bg-slate-600"
         >
-          {loading ? 'Đang Đánh Giá...' : 'Bắt Đầu Đánh Giá'}
+          {loading ? 'Đang đánh giá...' : 'Bắt đầu đánh giá'}
         </button>
       </div>
 
-      {/* Results */}
       {results && (
         <div className="space-y-6">
-          {/* Metrics Table */}
-          <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+          <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
             <table className="w-full">
               <thead className="bg-slate-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-white">Thuật Toán</th>
+                  <th className="px-4 py-3 text-left text-white">Thuật toán</th>
                   <th className="px-4 py-3 text-right text-white">Precision@K</th>
                   <th className="px-4 py-3 text-right text-white">Hit Rate</th>
-                  <th className="px-4 py-3 text-right text-white">Edges Ẩn</th>
-                  <th className="px-4 py-3 text-right text-white">Thời Gian (s)</th>
+                  <th className="px-4 py-3 text-right text-white">Số cạnh ẩn</th>
+                  <th className="px-4 py-3 text-right text-white">Thời gian (s)</th>
                 </tr>
               </thead>
               <tbody>
                 {results.map((result: any, idx: number) => (
-                  <tr
-                    key={idx}
-                    className={idx % 2 === 0 ? 'bg-slate-700/50' : ''}
-                  >
-                    <td className="px-4 py-3 text-white font-medium">{result.algorithm_label ?? result.algorithm}</td>
+                  <tr key={idx} className={idx % 2 === 0 ? 'bg-slate-700/50' : ''}>
+                    <td className="px-4 py-3 font-medium text-white">{result.algorithm_label ?? result.algorithm}</td>
                     <td className="px-4 py-3 text-right text-blue-300">{result.precision_at_k.toFixed(4)}</td>
                     <td className="px-4 py-3 text-right text-green-300">{result.hit_rate.toFixed(4)}</td>
                     <td className="px-4 py-3 text-right text-yellow-300">{result.num_edges_hidden}</td>
@@ -145,10 +140,9 @@ export const EvaluationPanel: React.FC = () => {
             </table>
           </div>
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Precision@K</h3>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+              <h3 className="mb-4 text-lg font-bold text-white">Precision@K</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartResults}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -160,8 +154,8 @@ export const EvaluationPanel: React.FC = () => {
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Hit Rate</h3>
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+              <h3 className="mb-4 text-lg font-bold text-white">Hit Rate</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartResults}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -178,4 +172,3 @@ export const EvaluationPanel: React.FC = () => {
     </div>
   );
 };
-

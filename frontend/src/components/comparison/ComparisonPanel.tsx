@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { compareCommunityAlgorithms } from '../../api/endpoints';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { EvaluationPanel } from '../evaluation/EvaluationPanel';
@@ -27,27 +27,27 @@ export const ComparisonPanel: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex gap-4 border-b border-slate-700">
         <button
           onClick={() => setActiveTab('community')}
           className={`px-6 py-3 font-medium transition-colors ${
             activeTab === 'community'
-              ? 'text-blue-400 border-b-2 border-blue-400'
+              ? 'border-b-2 border-blue-400 text-blue-400'
               : 'text-slate-400 hover:text-slate-300'
           }`}
         >
-          So Sanh Community Detection
+          So sánh phát hiện cộng đồng
         </button>
         <button
           onClick={() => setActiveTab('recommendation')}
           className={`px-6 py-3 font-medium transition-colors ${
             activeTab === 'recommendation'
-              ? 'text-blue-400 border-b-2 border-blue-400'
+              ? 'border-b-2 border-blue-400 text-blue-400'
               : 'text-slate-400 hover:text-slate-300'
           }`}
         >
-          So Sanh Recommendation
+          So sánh gợi ý kết nối
         </button>
       </div>
 
@@ -55,24 +55,24 @@ export const ComparisonPanel: React.FC = () => {
         {activeTab === 'community' ? (
           <div className="space-y-6">
             {loading ? (
-              <div className="text-center text-slate-400">Dang tai...</div>
+              <div className="text-center text-slate-400">Đang tải...</div>
             ) : communityData ? (
               <>
-                <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
                   <table className="w-full">
                     <thead className="bg-slate-700">
                       <tr>
-                        <th className="px-4 py-3 text-left text-white">Thuat Toan</th>
-                        <th className="px-4 py-3 text-right text-white">So Cong Dong</th>
+                        <th className="px-4 py-3 text-left text-white">Thuật toán</th>
+                        <th className="px-4 py-3 text-right text-white">Số cộng đồng</th>
                         <th className="px-4 py-3 text-right text-white">Modularity</th>
-                        <th className="px-4 py-3 text-right text-white">Thoi Gian (s)</th>
-                        <th className="px-4 py-3 text-right text-white">Diem Chat Luong</th>
+                        <th className="px-4 py-3 text-right text-white">Thời gian (s)</th>
+                        <th className="px-4 py-3 text-right text-white">Điểm chất lượng</th>
                       </tr>
                     </thead>
                     <tbody>
                       {communityData.algorithms.map((algo: any, idx: number) => (
                         <tr key={idx} className={idx % 2 === 0 ? 'bg-slate-700/50' : ''}>
-                          <td className="px-4 py-3 text-white font-medium">{algo.algorithm_name}</td>
+                          <td className="px-4 py-3 font-medium text-white">{algo.algorithm_name}</td>
                           <td className="px-4 py-3 text-right text-blue-300">{algo.num_communities}</td>
                           <td className="px-4 py-3 text-right text-green-300">{algo.modularity.toFixed(4)}</td>
                           <td className="px-4 py-3 text-right text-yellow-300">{algo.execution_time.toFixed(4)}</td>
@@ -83,9 +83,9 @@ export const ComparisonPanel: React.FC = () => {
                   </table>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-                    <h3 className="text-lg font-bold text-white mb-4">Thoi Gian Thuc Thi</h3>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+                    <h3 className="mb-4 text-lg font-bold text-white">Thời gian thực thi</h3>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={communityData.algorithms}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -97,8 +97,8 @@ export const ComparisonPanel: React.FC = () => {
                     </ResponsiveContainer>
                   </div>
 
-                  <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-                    <h3 className="text-lg font-bold text-white mb-4">Modularity</h3>
+                  <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+                    <h3 className="mb-4 text-lg font-bold text-white">Modularity</h3>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={communityData.algorithms}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#444" />

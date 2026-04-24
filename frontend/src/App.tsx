@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { CommunityAnalysis } from './components/community/CommunityAnalysis';
 import { ComparisonPanel } from './components/comparison/ComparisonPanel';
 import { DashboardOverview } from './components/dashboard/DashboardOverview';
@@ -20,38 +20,38 @@ export type PageType =
 
 const pageConfig: Record<PageType, { title: string; description: string; path: string }> = {
   overview: {
-    title: 'Tong Quan',
-    description: 'Thong ke tong quat ve mang xa hoi',
+    title: 'Tổng quan',
+    description: 'Thống kê tổng quát về mạng xã hội',
     path: '/',
   },
   community: {
-    title: 'Phan Tich Cong Dong',
-    description: 'Phat hien va phan tich cac cong dong trong mang',
+    title: 'Phân tích cộng đồng',
+    description: 'Phát hiện và phân tích các cộng đồng trong mạng',
     path: '/community',
   },
   users: {
-    title: 'Kham Pha Nguoi Dung',
-    description: 'Xem thong tin chi tiet ve nguoi dung',
+    title: 'Khám phá người dùng',
+    description: 'Xem thông tin chi tiết về người dùng',
     path: '/users',
   },
   recommendations: {
-    title: 'Goi Y Ket Noi',
-    description: 'Goi y nhung ket noi tiem nang',
+    title: 'Gợi ý kết nối',
+    description: 'Gợi ý những kết nối tiềm năng',
     path: '/recommendations',
   },
   comparison: {
-    title: 'So Sanh Thuat Toan',
-    description: 'So sanh hieu suat cac thuat toan',
+    title: 'So sánh thuật toán',
+    description: 'So sánh hiệu suất các thuật toán',
     path: '/comparison',
   },
   dataset: {
-    title: 'Quan Ly Du Lieu',
-    description: 'Upload va quan ly dataset',
+    title: 'Quản lý dữ liệu',
+    description: 'Tải lên và quản lý bộ dữ liệu',
     path: '/dataset',
   },
   gcn: {
-    title: 'GCN Prediction',
-    description: 'Du doan node classification bang Graph Neural Network',
+    title: 'Dự đoán GCN',
+    description: 'Dự đoán phân loại node bằng Graph Neural Network',
     path: '/gcn',
   },
 };

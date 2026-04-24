@@ -27,7 +27,6 @@ export const RecommendationGraph: React.FC<RecommendationGraphProps> = ({
 
     const initGraph = () => {
       try {
-        // Destroy old instance
         if (cyRef.current) {
           try {
             cyRef.current.removeAllListeners();
@@ -38,57 +37,50 @@ export const RecommendationGraph: React.FC<RecommendationGraphProps> = ({
           cyRef.current = null;
         }
 
-        // Create elements
         const elements: any[] = [];
 
-        // Main user node
         elements.push({
           data: {
             id: userId,
             label: userId,
-            type: 'user'
-          }
+            type: 'user',
+          },
         });
 
-        // Target user node
         elements.push({
           data: {
             id: targetId,
             label: targetId,
-            type: 'target'
-          }
+            type: 'target',
+          },
         });
 
-        // Common neighbors nodes
         explanation.common_neighbors.forEach((neighbor: string) => {
           elements.push({
             data: {
               id: neighbor,
               label: neighbor,
-              type: 'neighbor'
-            }
+              type: 'neighbor',
+            },
           });
 
-          // Edges from user to common neighbors
           elements.push({
             data: {
               id: `${userId}-${neighbor}`,
               source: userId,
               target: neighbor,
-            }
+            },
           });
 
-          // Edges from target to common neighbors
           elements.push({
             data: {
               id: `${targetId}-${neighbor}`,
               source: targetId,
               target: neighbor,
-            }
+            },
           });
         });
 
-        // Initialize Cytoscape
         const cy = cytoscape({
           container: containerRef.current,
           elements,
@@ -96,53 +88,53 @@ export const RecommendationGraph: React.FC<RecommendationGraphProps> = ({
             {
               selector: 'node',
               style: {
-                'label': 'data(label)',
+                label: 'data(label)',
                 'text-valign': 'center',
                 'text-halign': 'center',
-                'width': 50,
-                'height': 50,
+                width: 50,
+                height: 50,
                 'font-size': 11,
-                'color': '#fff',
+                color: '#fff',
                 'border-width': 2,
                 'border-color': '#ddd',
-              }
+              },
             },
             {
-              selector: 'node[type="user"]',
+              selector: 'node[type=\"user\"]',
               style: {
                 'background-color': '#3b82f6',
                 'border-color': '#1e40af',
-                'width': 60,
-                'height': 60,
+                width: 60,
+                height: 60,
                 'font-weight': 'bold',
-              }
+              },
             },
             {
-              selector: 'node[type="target"]',
+              selector: 'node[type=\"target\"]',
               style: {
                 'background-color': '#eab308',
                 'border-color': '#ca8a04',
-                'width': 60,
-                'height': 60,
+                width: 60,
+                height: 60,
                 'font-weight': 'bold',
-                'color': '#000',
-              }
+                color: '#000',
+              },
             },
             {
-              selector: 'node[type="neighbor"]',
+              selector: 'node[type=\"neighbor\"]',
               style: {
                 'background-color': '#64748b',
                 'border-color': '#475569',
-              }
+              },
             },
             {
               selector: 'edge',
               style: {
                 'line-color': '#cbd5e1',
-                'width': 1.5,
-                'opacity': 0.6,
-              }
-            }
+                width: 1.5,
+                opacity: 0.6,
+              },
+            },
           ],
           layout: {
             name: 'cose',
@@ -150,12 +142,11 @@ export const RecommendationGraph: React.FC<RecommendationGraphProps> = ({
             directed: false,
             componentSpacing: 40,
             nodeSpacing: 10,
-          } as any
+          } as any,
         });
 
         if (mounted) {
           cyRef.current = cy;
-          // Fit to view after a short delay
           setTimeout(() => {
             cy.fit(undefined, 10);
           }, 100);
@@ -167,7 +158,6 @@ export const RecommendationGraph: React.FC<RecommendationGraphProps> = ({
 
     initGraph();
 
-    // Cleanup
     return () => {
       mounted = false;
       if (cyRef.current) {
@@ -186,15 +176,15 @@ export const RecommendationGraph: React.FC<RecommendationGraphProps> = ({
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+          <div className="h-3 w-3 rounded-full bg-blue-500" />
           <span className="text-slate-400">Người dùng</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+          <div className="h-3 w-3 rounded-full bg-yellow-400" />
           <span className="text-slate-400">Gợi ý</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-slate-500"></div>
+          <div className="h-3 w-3 rounded-full bg-slate-500" />
           <span className="text-slate-400">Bạn chung</span>
         </div>
       </div>

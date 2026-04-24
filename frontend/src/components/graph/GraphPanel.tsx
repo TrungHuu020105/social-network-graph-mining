@@ -9,6 +9,7 @@ interface GraphPanelProps {
   selectedNodeId?: string | null;
   onNodeClick?: (nodeId: string) => void;
   colorMode?: 'community' | 'prediction';
+  refreshKey?: number;
 }
 
 type ScaleMetric = 'degree' | 'pagerank';
@@ -120,31 +121,31 @@ const stableEdgeHash = (source: string, target: string): number => {
 
 const buildPredictionExplanation = (node: GraphNodeData, detail: UserDetail | null): string => {
   if (node.prediction == null) {
-    return 'Node nay chua co du doan tu mo hinh GCN.';
+    return 'Node này chưa có dự đoán từ mô hình GCN.';
   }
 
-  const classLabel = node.prediction === 1 ? 'lop Partner (1)' : 'lop Non-Partner (0)';
+  const classLabel = node.prediction === 1 ? 'lớp Partner (1)' : 'lớp Non-Partner (0)';
   const probability = node.probability;
   const neighborCount = detail?.neighbors.length;
 
   if (probability == null) {
-    return `Mo hinh GCN xep node nay vao ${classLabel} dua tren ket hop dac trung node va thong tin lien ket trong do thi.`;
+    return `Mô hình GCN xếp node này vào ${classLabel} dựa trên kết hợp đặc trưng node và thông tin liên kết trong đồ thị.`;
   }
 
   const confidencePct = (probability * 100).toFixed(2);
   const confidenceText =
     probability >= 0.85
-      ? 'do tin cay cao'
+      ? 'độ tin cậy cao'
       : probability >= 0.65
-        ? 'do tin cay trung binh'
-        : 'do tin cay thap, gan ranh gioi 2 lop';
+        ? 'độ tin cậy trung bình'
+        : 'độ tin cậy thấp, gần ranh giới 2 lớp';
 
   const neighborhoodText =
     typeof neighborCount === 'number'
-      ? ` Node nay co ${neighborCount} lien ket lan can, giup mo hinh tong hop boi canh xung quanh.`
+      ? ` Node này có ${neighborCount} liên kết lân cận, giúp mô hình tổng hợp bối cảnh xung quanh.`
       : '';
 
-  return `Node duoc xep vao ${classLabel} vi xac suat du doan dat ${confidencePct}% (${confidenceText}). Mo hinh GCN dua vao cau truc ket noi va dac trung cua node de ra quyet dinh.${neighborhoodText}`;
+  return `Node được xếp vào ${classLabel} vì xác suất dự đoán đạt ${confidencePct}% (${confidenceText}). Mô hình GCN dựa vào cấu trúc kết nối và đặc trưng của node để ra quyết định.${neighborhoodText}`;
 };
 
 export const GraphPanel: React.FC<GraphPanelProps> = ({
@@ -152,6 +153,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
   selectedNodeId = null,
   onNodeClick,
   colorMode = 'community',
+  refreshKey = 0,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
@@ -184,16 +186,16 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
   const filterOptions = useMemo(() => {
     if (colorMode === 'prediction') {
       return [
-        { value: 'all', label: 'All predictions' },
-        { value: '1', label: 'Prediction 1' },
-        { value: '0', label: 'Prediction 0' },
+        { value: 'all', label: 'Tất cả dự đoán' },
+        { value: '1', label: 'Dự đoán lớp 1' },
+        { value: '0', label: 'Dự đoán lớp 0' },
       ];
     }
     return [
-      { value: 'all', label: 'All communities' },
+      { value: 'all', label: 'Tất cả cộng đồng' },
       ...communityOptions.map((communityId) => ({
         value: String(communityId),
-        label: `Community ${communityId}`,
+        label: `Cộng đồng ${communityId}`,
       })),
     ];
   }, [colorMode, communityOptions]);
@@ -295,7 +297,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
       setError(null);
     } catch (e) {
       console.error('Error loading graph:', e);
-      setError(e instanceof Error ? e.message : 'Loi tai do thi');
+      setError(e instanceof Error ? e.message : 'Lỗi tải đồ thị');
     } finally {
       setIsLoading(false);
     }
@@ -319,7 +321,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
 
   useEffect(() => {
     loadGraph(maxNodes);
-  }, [communityAlgorithm, maxNodes]);
+  }, [communityAlgorithm, maxNodes, refreshKey]);
 
   useEffect(() => {
     if (!containerRef.current || cyRef.current) return;
@@ -663,19 +665,19 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
   return (
     <div className="rounded-xl border border-slate-700 bg-slate-800 shadow-lg">
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-700 bg-slate-800/90 p-3">
-        <button onClick={() => handleZoom('in')} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Zoom in">
+        <button onClick={() => handleZoom('in')} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Phóng to">
           <ZoomIn size={16} />
         </button>
-        <button onClick={() => handleZoom('out')} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Zoom out">
+        <button onClick={() => handleZoom('out')} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Thu nhỏ">
           <ZoomOut size={16} />
         </button>
-        <button onClick={handleFit} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Fit graph">
+        <button onClick={handleFit} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Căn vừa đồ thị">
           <Maximize2 size={16} />
         </button>
-        <button onClick={handleRelayout} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Relayout">
+        <button onClick={handleRelayout} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Sắp xếp lại">
           <RefreshCw size={16} />
         </button>
-        <button onClick={handleResetView} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Reset view">
+        <button onClick={handleResetView} className="rounded bg-slate-700 p-2 text-slate-100 hover:bg-slate-600" title="Đặt lại góc nhìn">
           <RotateCcw size={16} />
         </button>
 
@@ -697,8 +699,8 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
             onChange={(e) => setScaleMetric(e.target.value as ScaleMetric)}
             className="rounded border border-slate-600 bg-slate-700 px-3 py-2 text-xs text-slate-100"
           >
-            <option value="degree">Scale by degree</option>
-            <option value="pagerank">Scale by pagerank</option>
+            <option value="degree">Tỉ lệ theo bậc</option>
+            <option value="pagerank">Tỉ lệ theo PageRank</option>
           </select>
         )}
 
@@ -707,11 +709,11 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
           onChange={(e) => setMaxNodes(Number(e.target.value))}
           className="rounded border border-slate-600 bg-slate-700 px-3 py-2 text-xs text-slate-100"
         >
-          <option value={200}>200 nodes</option>
-          <option value={500}>500 nodes</option>
-          <option value={1000}>1000 nodes</option>
-          <option value={2000}>2000 nodes</option>
-          <option value={5000}>Full dataset</option>
+          <option value={200}>200 node</option>
+          <option value={500}>500 node</option>
+          <option value={1000}>1000 node</option>
+          <option value={2000}>2000 node</option>
+          <option value={5000}>Toàn bộ dataset</option>
         </select>
 
         <select
@@ -719,8 +721,8 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
           onChange={(e) => setEdgeMode(e.target.value as EdgeMode)}
           className="rounded border border-slate-600 bg-slate-700 px-3 py-2 text-xs text-slate-100"
         >
-          <option value="reduced">Reduced edges</option>
-          <option value="full">Full edges</option>
+          <option value="reduced">Cạnh rút gọn</option>
+          <option value="full">Toàn bộ cạnh</option>
         </select>
 
         <label className="flex items-center gap-1 text-xs text-slate-200">
@@ -729,7 +731,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
             checked={showOnlyNeighborhood}
             onChange={(e) => setShowOnlyNeighborhood(e.target.checked)}
           />
-          Show only selected neighborhood
+          Chỉ hiển thị lân cận đã chọn
         </label>
       </div>
 
@@ -738,7 +740,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
           <div ref={containerRef} className="h-full w-full" />
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-slate-900/70 text-slate-200">
-              Dang tai do thi...
+              Đang tải đồ thị...
             </div>
           )}
           {error && <div className="absolute inset-0 flex items-center justify-center text-red-400">{error}</div>}
@@ -748,41 +750,41 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
               style={{ left: hoverState.x + 10, top: hoverState.y + 10 }}
             >
               <div>ID: {hoverState.node.id}</div>
-              <div>Community: {hoverState.node.community}</div>
-              <div>Degree: {hoverState.node.degree}</div>
+              <div>Cộng đồng: {hoverState.node.community}</div>
+              <div>Bậc: {hoverState.node.degree}</div>
               <div>PageRank: {hoverState.node.pagerank.toFixed(6)}</div>
             </div>
           )}
         </div>
 
         <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-200">
-          <h4 className="mb-2 font-semibold text-slate-100">Selected Node</h4>
+          <h4 className="mb-2 font-semibold text-slate-100">Node đã chọn</h4>
           {selectedNode ? (
             <div className="space-y-2">
               <div><span className="text-slate-400">ID:</span> {selectedNode.id}</div>
               {colorMode !== 'prediction' && (
                 <>
-                  <div><span className="text-slate-400">Community:</span> {selectedNode.community}</div>
-                  <div><span className="text-slate-400">Degree:</span> {selectedNode.degree}</div>
+                  <div><span className="text-slate-400">Cộng đồng:</span> {selectedNode.community}</div>
+                  <div><span className="text-slate-400">Bậc:</span> {selectedNode.degree}</div>
                   <div><span className="text-slate-400">PageRank:</span> {selectedNode.pagerank.toFixed(6)}</div>
                 </>
               )}
               {selectedNode.prediction != null && (
-                <div><span className="text-slate-400">Prediction:</span> {selectedNode.prediction}</div>
+                <div><span className="text-slate-400">Dự đoán:</span> {selectedNode.prediction}</div>
               )}
               {selectedNode.probability != null && (
-                <div><span className="text-slate-400">Probability:</span> {(selectedNode.probability * 100).toFixed(2)}%</div>
+                <div><span className="text-slate-400">Xác suất:</span> {(selectedNode.probability * 100).toFixed(2)}%</div>
               )}
-              {nodeDetailLoading && <p className="text-xs text-slate-400">Dang tai thong tin...</p>}
+              {nodeDetailLoading && <p className="text-xs text-slate-400">Đang tải thông tin...</p>}
               {!nodeDetailLoading && selectedNodeDetail && (
                 <>
-                  <div><span className="text-slate-400">Name:</span> {selectedNodeDetail.name}</div>
-                  <div><span className="text-slate-400">Username:</span> @{selectedNodeDetail.username}</div>
+                  <div><span className="text-slate-400">Tên:</span> {selectedNodeDetail.name}</div>
+                  <div><span className="text-slate-400">Tên đăng nhập:</span> @{selectedNodeDetail.username}</div>
                 </>
               )}
               {colorMode === 'prediction' && (
                 <div className="mt-2 rounded-md border border-slate-700 bg-slate-800/60 p-2 text-slate-200">
-                  <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-300">Giai thich</div>
+                  <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-300">Giải thích</div>
                   <div className="text-xs leading-relaxed text-slate-300">
                     {buildPredictionExplanation(selectedNode, selectedNodeDetail)}
                   </div>
@@ -790,15 +792,15 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
               )}
             </div>
           ) : (
-            <div className="text-slate-400">Click a node to inspect details.</div>
+            <div className="text-slate-400">Nhấn vào một node để xem chi tiết.</div>
           )}
 
           <div className="mt-4 border-t border-slate-700 pt-3 text-xs text-slate-300">
-            <div>Rendered nodes: {displayedGraph?.meta.num_nodes ?? 0}</div>
-            <div>Rendered edges: {displayedGraph?.meta.num_edges ?? 0}</div>
-            <div>Communities: {displayedGraph?.meta.num_communities ?? 0}</div>
-            <div>Layout: {layoutName}</div>
-            <div>Edges mode: {edgeMode}</div>
+            <div>Số node hiển thị: {displayedGraph?.meta.num_nodes ?? 0}</div>
+            <div>Số cạnh hiển thị: {displayedGraph?.meta.num_edges ?? 0}</div>
+            <div>Số cộng đồng: {displayedGraph?.meta.num_communities ?? 0}</div>
+            <div>Bố cục: {layoutName}</div>
+            <div>Chế độ cạnh: {edgeMode === 'full' ? 'Toàn bộ cạnh' : 'Cạnh rút gọn'}</div>
           </div>
         </div>
       </div>

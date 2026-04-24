@@ -1,8 +1,23 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { explainRecommendation, getDatasetInfo, getRecommendations } from '../../api/endpoints';
 import { ExplanationData, Recommendation } from '../../types';
 import { RecommendationGraph } from './RecommendationGraph';
+
+const formatExplanationText = (text?: string): string => {
+  if (!text) return '';
+
+  return text
+    .replace(/\bCo\b/g, 'Có')
+    .replace(/\bGiong nhau\b/g, 'Giống nhau')
+    .replace(/\bDiem\b/g, 'Điểm')
+    .replace(/\bdua tren\b/g, 'dựa trên')
+    .replace(/\bcau truc\b/g, 'cấu trúc')
+    .replace(/\bdo thi\b/g, 'đồ thị')
+    .replace(/\bban chung\b/g, 'bạn chung')
+    .replace(/\bCung cong dong\b/g, 'Cùng cộng đồng')
+    .replace(/\bKhong\b/g, 'Không');
+};
 
 export const RecommendationExplorer: React.FC = () => {
   const [users, setUsers] = useState<Array<{ id: string; name: string }>>([]);
@@ -40,6 +55,7 @@ export const RecommendationExplorer: React.FC = () => {
 
   useEffect(() => {
     if (!selectedUser) return;
+
     const loadRecommendations = async () => {
       setLoading(true);
       try {
@@ -68,6 +84,7 @@ export const RecommendationExplorer: React.FC = () => {
       setExplanation(null);
       return;
     }
+
     const loadExplanation = async () => {
       setExplanationLoading(true);
       try {
@@ -83,24 +100,24 @@ export const RecommendationExplorer: React.FC = () => {
     loadExplanation();
   }, [selectedRecommendation, selectedUser, algorithm]);
 
-  const filteredUsers = users.filter((u) => {
+  const filteredUsers = useMemo(() => {
     const keyword = userSearch.trim().toLowerCase();
-    if (!keyword) return true;
-    return u.id.toLowerCase().includes(keyword) || u.name.toLowerCase().includes(keyword);
-  });
+    if (!keyword) return users;
+    return users.filter((u) => u.id.toLowerCase().includes(keyword) || u.name.toLowerCase().includes(keyword));
+  }, [users, userSearch]);
 
   return (
     <div className="space-y-6 p-6">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-2 block text-sm font-medium text-white">Chon Nguoi Dung</label>
+          <label className="mb-2 block text-sm font-medium text-white">Chọn người dùng</label>
           <div className="relative mb-2">
             <Search className="absolute left-3 top-2.5 text-slate-500" size={16} />
             <input
               type="text"
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
-              placeholder="Tim theo ID hoac ten..."
+              placeholder="Tìm theo ID hoặc tên..."
               className="w-full rounded border border-slate-600 bg-slate-700 py-2 pl-9 pr-3 text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -120,7 +137,7 @@ export const RecommendationExplorer: React.FC = () => {
                 </button>
               ))}
               {filteredUsers.length === 0 && (
-                <div className="px-3 py-2 text-sm text-slate-400">Khong tim thay nguoi dung phu hop</div>
+                <div className="px-3 py-2 text-sm text-slate-400">Không tìm thấy người dùng phù hợp</div>
               )}
             </div>
           )}
@@ -138,7 +155,7 @@ export const RecommendationExplorer: React.FC = () => {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-white">Thuat Toan</label>
+          <label className="mb-2 block text-sm font-medium text-white">Thuật toán</label>
           <select
             value={algorithm}
             onChange={(e) => setAlgorithm(e.target.value)}
@@ -156,9 +173,9 @@ export const RecommendationExplorer: React.FC = () => {
       <div className="space-y-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
-            <h3 className="mb-4 text-xl font-bold text-white">Goi Y Ket Noi</h3>
+            <h3 className="mb-4 text-xl font-bold text-white">Gợi ý kết nối</h3>
             {loading ? (
-              <div className="text-center text-slate-400">Dang tai...</div>
+              <div className="text-center text-slate-400">Đang tải...</div>
             ) : (
               <div className="max-h-96 space-y-2 overflow-y-auto">
                 {recommendations.map((rec) => (
@@ -180,7 +197,7 @@ export const RecommendationExplorer: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-blue-300">{rec.score.toFixed(4)}</p>
-                        <p className="text-xs text-slate-500">{rec.num_common_neighbors} ban chung</p>
+                        <p className="text-xs text-slate-500">{rec.num_common_neighbors} bạn chung</p>
                       </div>
                     </div>
                   </button>
@@ -193,19 +210,19 @@ export const RecommendationExplorer: React.FC = () => {
             {explanationLoading ? (
               <div className="flex h-full items-center justify-center text-center text-slate-400">
                 <div>
-                  <div className="mb-2 text-2xl">⏳</div>
-                  <p>Dang tai giai thich...</p>
+                  <div className="mb-2 text-2xl">...</div>
+                  <p>Đang tải giải thích...</p>
                 </div>
               </div>
             ) : explanation ? (
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-white">Giai Thich</h3>
+                <h3 className="text-xl font-bold text-white">Giải thích</h3>
                 <div className="rounded border border-slate-600 bg-slate-700/50 p-4">
-                  <p className="text-sm text-slate-300">{explanation.explanation_text}</p>
+                  <p className="text-sm text-slate-300">{formatExplanationText(explanation.explanation_text)}</p>
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between rounded bg-slate-700/50 p-3">
-                    <span className="text-slate-400">Ban Chung</span>
+                    <span className="text-slate-400">Bạn chung</span>
                     <span className="font-bold text-white">{explanation.num_common_neighbors}</span>
                   </div>
                   <div className="flex items-center justify-between rounded bg-slate-700/50 p-3">
@@ -213,26 +230,22 @@ export const RecommendationExplorer: React.FC = () => {
                     <span className="font-bold text-white">{explanation.jaccard_coefficient.toFixed(4)}</span>
                   </div>
                   <div className="flex items-center justify-between rounded bg-slate-700/50 p-3">
-                    <span className="text-slate-400">{explanation.ranking_label ?? 'Diem Thuat Toan'}</span>
+                    <span className="text-slate-400">{explanation.ranking_label ?? 'Điểm thuật toán'}</span>
                     <span className="font-bold text-white">
                       {(explanation.ranking_score ?? explanation.adamic_adar_score).toFixed(4)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded bg-slate-700/50 p-3">
-                    <span className="text-slate-400">Adamic-Adar (tham khao)</span>
-                    <span className="font-bold text-white">{explanation.adamic_adar_score.toFixed(4)}</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded bg-slate-700/50 p-3">
-                    <span className="text-slate-400">Cung Cong Dong</span>
+                    <span className="text-slate-400">Cùng cộng đồng</span>
                     <span className={explanation.same_community ? 'font-bold text-green-400' : 'font-bold text-red-400'}>
-                      {explanation.same_community ? 'Co' : 'Khong'}
+                      {explanation.same_community ? 'Có' : 'Không'}
                     </span>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="flex h-full items-center justify-center text-center text-slate-400">
-                Chon mot goi y de xem giai thich
+                Chọn một gợi ý để xem giải thích
               </div>
             )}
           </div>
@@ -240,7 +253,7 @@ export const RecommendationExplorer: React.FC = () => {
 
         {explanation && selectedRecommendation && selectedUser && (
           <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
-            <h3 className="mb-4 text-xl font-bold text-white">Moi Quan He</h3>
+            <h3 className="mb-4 text-xl font-bold text-white">Mối quan hệ</h3>
             <RecommendationGraph
               userId={selectedUser}
               targetId={selectedRecommendation.target_id}
@@ -254,4 +267,3 @@ export const RecommendationExplorer: React.FC = () => {
     </div>
   );
 };
-
