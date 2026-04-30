@@ -1,6 +1,6 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, Link2, Network, Radio, Search, Users, Zap } from 'lucide-react';
-import { compareCommunityAlgorithmsDirect, getDatasetInfo, getOverview, getTopInfluential } from '../../api/endpoints';
+import { compareCommunityAlgorithmsDirect, getCommunityStats, getDatasetInfo, getOverview, getTopInfluential } from '../../api/endpoints';
 import { InfluentialUser, OverviewStats } from '../../types';
 import { GraphPanel } from '../graph/GraphPanel';
 import { StatCard } from './StatCard';
@@ -16,6 +16,7 @@ export const DashboardOverview: React.FC = () => {
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [topUsers, setTopUsers] = useState<InfluentialUser[]>([]);
   const [communityComparison, setCommunityComparison] = useState<CommunityComparison | null>(null);
+  const [communityStats, setCommunityStats] = useState<Array<{ id: number; size: number; density: number }>>([]);
   const [users, setUsers] = useState<Array<{ id: string; name: string }>>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
@@ -26,15 +27,17 @@ export const DashboardOverview: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [overviewData, topInfluential, comparison, datasetInfo] = await Promise.all([
+        const [overviewData, topInfluential, comparison, communityStatsResponse, datasetInfo] = await Promise.all([
           getOverview(),
           getTopInfluential('pagerank', 5),
           compareCommunityAlgorithmsDirect(),
+          getCommunityStats(),
           getDatasetInfo(),
         ]);
         setStats(overviewData);
         setTopUsers(topInfluential.users);
         setCommunityComparison(comparison);
+        setCommunityStats(communityStatsResponse.statistics || []);
         setSelectedAlgorithm(comparison.best_algorithm || 'louvain');
         const nodeList = datasetInfo.node_list || [];
         setUsers(nodeList);
@@ -58,6 +61,16 @@ export const DashboardOverview: React.FC = () => {
       .filter((u) => u.id.toLowerCase().includes(keyword) || u.name.toLowerCase().includes(keyword))
       .slice(0, 8);
   }, [users, searchQuery]);
+
+  const largestCommunity = useMemo(() => {
+    if (communityStats.length === 0) return null;
+    return communityStats.reduce((max, current) => (current.size > max.size ? current : max), communityStats[0]);
+  }, [communityStats]);
+
+  const topNode = useMemo(() => {
+    if (topUsers.length === 0) return null;
+    return topUsers[0];
+  }, [topUsers]);
 
   if (loading) {
     return <div className="p-6 text-white">Đang tải...</div>;
@@ -168,6 +181,39 @@ export const DashboardOverview: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+        <h3 className="mb-4 text-xl font-bold text-white">Insight từ dữ liệu</h3>
+        <div className="space-y-3 text-sm text-slate-200">
+          {largestCommunity && (
+            <p>
+              • Community lớn nhất là <span className="font-semibold text-blue-300">#{largestCommunity.id}</span> với{' '}
+              <span className="font-semibold text-blue-300">{largestCommunity.size}</span> node (density {largestCommunity.density.toFixed(4)}), cho thấy mạng có cụm hoạt động mạnh.
+            </p>
+          )}
+          {topNode && (
+            <p>
+              • Node ảnh hưởng cao nhất theo PageRank hiện tại là{' '}
+              <span className="font-semibold text-emerald-300">{topNode.name || topNode.username}</span> (score {topNode.score.toFixed(4)}, degree {topNode.degree}),
+              phản ánh vị trí trung tâm lan truyền.
+            </p>
+          )}
+          {stats && (
+            <p>
+              • Tỷ lệ node cô lập chỉ{' '}
+              <span className="font-semibold text-red-300">
+                {((stats.isolated_nodes / Math.max(1, stats.num_nodes)) * 100).toFixed(2)}%
+              </span>
+              ; phần lớn node nằm trong thành phần kết nối chính, thuận lợi cho bài toán gợi ý liên kết.
+            </p>
+          )}
+          {communityComparison && (
+            <p>
+              • {communityComparison.best_algorithm} có modularity cao nhất ({communityComparison.best_modularity.toFixed(4)}), nên được chọn làm nền cho phân tích cộng đồng.
+            </p>
+          )}
         </div>
       </div>
     </div>

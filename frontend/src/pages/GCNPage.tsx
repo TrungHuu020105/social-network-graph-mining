@@ -1,10 +1,12 @@
 ﻿import React, { useEffect, useState } from 'react';
+import { getGraphData } from '../api/endpoints';
 import { getGCNAllPredictions, getGCNEmbeddings, predictGCNNode, trainGCN } from '../api/gcn';
 import { EmbeddingChart } from '../components/gcn/EmbeddingChart';
 import { InsightPanel } from '../components/gcn/InsightPanel';
 import { PredictionPanel } from '../components/gcn/PredictionPanel';
 import { TrainingPanel } from '../components/gcn/TrainingPanel';
 import { GraphPanel } from '../components/graph/GraphPanel';
+import { GraphNodeData } from '../types';
 import { GCNEmbeddingPoint, GCNPrediction, GCNTrainResponse } from '../types/gcn';
 
 export const GCNPage: React.FC = () => {
@@ -15,6 +17,7 @@ export const GCNPage: React.FC = () => {
   const [predictionResult, setPredictionResult] = useState<GCNPrediction | null>(null);
   const [allPredictions, setAllPredictions] = useState<GCNPrediction[]>([]);
   const [embeddings, setEmbeddings] = useState<GCNEmbeddingPoint[]>([]);
+  const [graphNodes, setGraphNodes] = useState<GraphNodeData[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
 
@@ -24,9 +27,14 @@ export const GCNPage: React.FC = () => {
   }));
 
   const refreshGCNData = async () => {
-    const [predictionResponse, embeddingResponse] = await Promise.all([getGCNAllPredictions(), getGCNEmbeddings()]);
+    const [predictionResponse, embeddingResponse, graphResponse] = await Promise.all([
+      getGCNAllPredictions(),
+      getGCNEmbeddings(),
+      getGraphData('louvain', 1000),
+    ]);
     setAllPredictions(predictionResponse.predictions);
     setEmbeddings(embeddingResponse.embeddings);
+    setGraphNodes(graphResponse.nodes || []);
   };
 
   const handleTrain = async () => {
@@ -105,7 +113,7 @@ export const GCNPage: React.FC = () => {
       </section>
 
       <EmbeddingChart points={embeddings} />
-      <InsightPanel predictions={allPredictions} />
+      <InsightPanel predictions={allPredictions} graphNodes={graphNodes} />
     </div>
   );
 };
